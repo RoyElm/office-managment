@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>OfficeMapper - Redirecting</title>
+  <script type="text/javascript">
+    // Single Page Apps for GitHub Pages
+    // This script takes the current URL path and converts the path to
+    // just a single route (because GitHub Pages doesn't natively support SPA routing)
+    var segmentCount = 1; // Change to 0 if deploying to a custom domain
+    var l = window.location;
+    var repo = '/office-managment';
+    
+    // Redirect using sessionStorage to keep track of what we've tried to load
+    sessionStorage.redirect = l.pathname + l.search;
+    l.replace(
+      l.protocol + '//' + l.hostname + 
+      (l.port ? ':' + l.port : '') +
+      l.pathname.split('/').slice(0, 1 + segmentCount).join('/') + 
+      repo + '/?redirect=' +
+      encodeURIComponent(l.pathname.replace(repo, '') + l.search)
+    );
+  </script>
+</head>
+<body>
+  <h1>Redirecting...</h1>
+  <p>If you are not redirected automatically, please click <a href="/office-managment/">here</a>.</p>
+</body>
+</html> 

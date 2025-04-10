@@ -1,24 +1,74 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# OfficeMapper
 
-## Getting Started
+A web application for managing office seating arrangements with interactive maps. Upload office floor plans, place employees, assign teams, and manage room names, all with a user-friendly interface.
 
-First, run the development server:
+## Features
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+- **Map Upload**: Upload an office map image (JPG, PNG)
+- **Employee Placement**: Interactive map interface to place and name employee locations
+- **Team Assignment**: Add/edit team or group assignments for each seating location
+- **Room Renaming**: Rename office rooms directly on the map
+- **Search & Filter**: Search and filter employees and team assignments
+- **Database Storage**: All data is saved in MongoDB
+- **CSV Import**: Import employees from a CSV file with first name and last name columns
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Setup Instructions
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Prerequisites
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- Node.js (v16 or later)
+- npm or yarn
+- MongoDB Atlas account (or a MongoDB server)
+
+### Installation
+
+1. Clone the repository
+2. Install dependencies:
+   ```
+   npm install
+   ```
+
+3. Set up MongoDB:
+   - Create a `.env.local` file in the root directory
+   - Add your MongoDB connection string:
+     ```
+     MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/database?retryWrites=true&w=majority
+     ```
+   - Replace username, password, cluster, and database with your MongoDB credentials
+
+4. Run the development server:
+   ```
+   npm run dev
+   ```
+
+5. Open [http://localhost:3000](http://localhost:3000) in your browser
+
+### Testing MongoDB Connection
+
+To verify your MongoDB connection is working:
+1. Start the development server
+2. Visit [http://localhost:3000/api/test-db](http://localhost:3000/api/test-db)
+3. You should see a JSON response confirming the connection
+
+## Using the Application
+
+1. **Upload a Map**: Start by uploading an office floor plan image
+2. **Add Employees**: Switch to the Employee Placement tab and add employees
+3. **Import from CSV**: Alternatively, import employees from a CSV file
+4. **Arrange Employees**: Drag employees to their correct positions
+5. **Create Teams**: Switch to the Team Assignment tab to create and assign teams
+6. **Name Rooms**: Use the Room Renaming tab to label rooms
+7. **Search**: Use the Search & Filter tab to find employees
+
+All changes are automatically saved to the database.
+
+## Technologies Used
+
+- Next.js
+- React
+- TypeScript
+- Tailwind CSS
+- MongoDB/Mongoose
 
 ## Learn More
 
@@ -34,3 +84,36 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+## Deployment
+
+### Deploying to GitHub Pages
+
+This application is configured for deployment to GitHub Pages. Follow these steps:
+
+1. Create a GitHub repository and push your code
+
+2. Update the "homepage" in package.json with your GitHub username:
+   ```json
+   "homepage": "https://yourusername.github.io/office-managment"
+   ```
+
+3. Deploy using the GitHub Actions workflow (automatic):
+   - Push to the main branch to trigger automatic deployment, or
+   - Go to the Actions tab on GitHub and manually trigger the "Deploy to GitHub Pages" workflow
+
+4. Alternatively, deploy manually with:
+   ```
+   npm run deploy
+   ```
+
+5. Configure GitHub Pages Settings:
+   - Go to your GitHub repository
+   - Navigate to Settings > Pages
+   - Set the source to "GitHub Actions"
+
+### Note About MongoDB in Deployment
+
+When deployed to GitHub Pages (or any static hosting), the app automatically switches to offline mode and saves data to local storage since MongoDB requires a backend server. This is expected behavior.
+
+If you need full database functionality in production, consider deploying to a platform that supports server-side code like Vercel, Netlify, or Heroku.
