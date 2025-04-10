@@ -17,6 +17,7 @@ interface Employee {
 interface TeamAssignmentProps {
   employees: Employee[];
   onEmployeeUpdate: (id: string, updates: Partial<Employee>) => void;
+  onHighlightEmployee?: (employeeId: string | null) => void;
 }
 
 // All available team colors
@@ -29,7 +30,8 @@ const TEAM_COLORS = [
 
 export default function TeamAssignment({
   employees,
-  onEmployeeUpdate
+  onEmployeeUpdate,
+  onHighlightEmployee
 }: TeamAssignmentProps) {
   const [teams, setTeams] = useState<Team[]>([
     { id: 'team-1', name: 'Engineering', color: 'bg-blue-400' },
@@ -124,6 +126,13 @@ export default function TeamAssignment({
     });
   };
 
+  // Handle highlighting the employee on the map
+  const handleEmployeeClick = (employeeId: string) => {
+    if (onHighlightEmployee) {
+      onHighlightEmployee(employeeId);
+    }
+  };
+
   return (
     <div className="w-full">
       <h2 className="text-xl font-semibold mb-4">Team Assignment</h2>
@@ -190,7 +199,11 @@ export default function TeamAssignment({
           </thead>
           <tbody>
             {employees.map(employee => (
-              <tr key={employee.id}>
+              <tr 
+                key={employee.id} 
+                className="hover:bg-gray-50 cursor-pointer"
+                onClick={() => handleEmployeeClick(employee.id)}
+              >
                 <td className="p-2 border">{employee.name}</td>
                 <td className="p-2 border">
                   {employee.team ? (
@@ -206,6 +219,7 @@ export default function TeamAssignment({
                     className="w-full px-2 py-1 border rounded"
                     value={employee.team || ''}
                     onChange={(e) => handleAssignTeam(employee.id, e.target.value || null)}
+                    onClick={(e) => e.stopPropagation()}
                   >
                     <option value="">No Team</option>
                     {teams.map(team => (
@@ -226,6 +240,11 @@ export default function TeamAssignment({
             )}
           </tbody>
         </table>
+        {onHighlightEmployee && (
+          <p className="mt-2 text-sm text-gray-500">
+            Click on an employee row to highlight their location on the map.
+          </p>
+        )}
       </div>
     </div>
   );

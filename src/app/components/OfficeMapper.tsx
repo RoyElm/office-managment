@@ -336,12 +336,12 @@ export default function OfficeMapper() {
     setTimeout(() => saveToDatabase(), 500);
   };
 
-  // Clear highlight after 3 seconds
+  // Clear highlight after 5 seconds (increased from 3 to give more time to see)
   useEffect(() => {
     if (highlightedEmployee) {
       const timer = setTimeout(() => {
         setHighlightedEmployee(null);
-      }, 3000);
+      }, 5000);
       
       return () => clearTimeout(timer);
     }
@@ -499,6 +499,7 @@ export default function OfficeMapper() {
               <TeamAssignment
                 employees={employees}
                 onEmployeeUpdate={handleEmployeeUpdate}
+                onHighlightEmployee={setHighlightedEmployee}
               />
             )}
             
@@ -544,7 +545,7 @@ export default function OfficeMapper() {
                     key={employee.id}
                     className={`absolute w-6 h-6 transform -translate-x-1/2 -translate-y-1/2 rounded-full flex items-center justify-center text-xs group ${
                       highlightedEmployee === employee.id
-                        ? 'ring-2 ring-red-500 animate-pulse bg-red-200'
+                        ? 'ring-4 ring-red-500 animate-pulse bg-red-200 z-50 w-8 h-8 font-bold'
                         : employee.team
                         ? getTeamColor(employee.team)
                         : 'bg-gray-400'
