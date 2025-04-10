@@ -1,6 +1,6 @@
-// Commenting out dynamic export for static site generation
-// export const dynamic = 'force-dynamic';
-// For static export, make this a static route
+// Setting dynamic export for static site generation
+export const dynamic = 'force-static';
+export const revalidate = false;
 export const dynamicParams = false;
 
 import { NextResponse } from 'next/server';

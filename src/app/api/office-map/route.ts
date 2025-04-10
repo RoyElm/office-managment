@@ -1,5 +1,6 @@
-// Commenting out dynamic export for static site generation
-// export const dynamic = 'force-dynamic';
+// Setting dynamic export for static site generation
+export const dynamic = 'force-static';
+export const revalidate = false;
 
 import { NextRequest, NextResponse } from 'next/server';
 import dbConnect from '../../../lib/mongodb';
