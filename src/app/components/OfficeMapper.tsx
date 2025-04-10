@@ -247,7 +247,11 @@ export default function OfficeMapper() {
     reader.onload = (e) => {
       if (e.target?.result) {
         setMapImage(e.target.result as string);
-        setActiveTab('employees');
+        
+        // If we don't already have a map (first upload), switch to employees tab
+        if (!mapImage) {
+          setActiveTab('employees');
+        }
         
         // Save to database when map is uploaded
         setTimeout(() => saveToDatabase(), 500);

@@ -66,7 +66,11 @@ export default function MapUploader({ onMapUpload, existingMapImage }: MapUpload
   };
 
   const handleBrowseClick = () => {
-    fileInputRef.current?.click();
+    if (fileInputRef.current) {
+      // Reset the value to ensure onChange triggers even if the same file is selected
+      fileInputRef.current.value = '';
+      fileInputRef.current.click();
+    }
   };
 
   const handleReplaceImage = () => {
@@ -94,6 +98,7 @@ export default function MapUploader({ onMapUpload, existingMapImage }: MapUpload
                 className="bg-blue-500 text-white p-2 rounded-full"
                 onClick={handleBrowseClick}
                 title="Replace with new image"
+                type="button"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                   <path d="M5.5 13a3.5 3.5 0 01-.369-6.98 4 4 0 117.753-1.977A4.5 4.5 0 1113.5 13H11V9.413l1.293 1.293a1 1 0 001.414-1.414l-3-3a1 1 0 00-1.414 0l-3 3a1 1 0 001.414 1.414L9 9.414V13H5.5z" />
@@ -104,6 +109,7 @@ export default function MapUploader({ onMapUpload, existingMapImage }: MapUpload
                 className="bg-red-500 text-white p-2 rounded-full"
                 onClick={handleReplaceImage}
                 title="Remove current image"
+                type="button"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                   <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
@@ -126,6 +132,7 @@ export default function MapUploader({ onMapUpload, existingMapImage }: MapUpload
           <button 
             className="mt-2 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
             onClick={handleBrowseClick}
+            type="button"
           >
             Browse Files
           </button>
