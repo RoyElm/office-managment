@@ -1,15 +1,23 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 
 interface MapUploaderProps {
   onMapUpload: (file: File) => void;
+  existingMapImage?: string | null;
 }
 
-export default function MapUploader({ onMapUpload }: MapUploaderProps) {
+export default function MapUploader({ onMapUpload, existingMapImage }: MapUploaderProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [preview, setPreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Set the preview if we have an existing image
+  useEffect(() => {
+    if (existingMapImage) {
+      setPreview(existingMapImage);
+    }
+  }, [existingMapImage]);
 
   const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
@@ -61,6 +69,13 @@ export default function MapUploader({ onMapUpload }: MapUploaderProps) {
     fileInputRef.current?.click();
   };
 
+  const handleReplaceImage = () => {
+    setPreview(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
   return (
     <div className="w-full">
       <h2 className="text-xl font-semibold mb-4">Map Upload</h2>
@@ -74,14 +89,30 @@ export default function MapUploader({ onMapUpload }: MapUploaderProps) {
               alt="Office Map Preview" 
               className="max-w-full h-auto rounded-lg shadow-sm"
             />
-            <button 
-              className="absolute top-2 right-2 bg-red-500 text-white p-2 rounded-full"
-              onClick={() => setPreview(null)}
-            >
-              ✕
-            </button>
+            <div className="absolute top-2 right-2 flex space-x-2">
+              <button 
+                className="bg-blue-500 text-white p-2 rounded-full"
+                onClick={handleBrowseClick}
+                title="Replace with new image"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                  <path d="M5.5 13a3.5 3.5 0 01-.369-6.98 4 4 0 117.753-1.977A4.5 4.5 0 1113.5 13H11V9.413l1.293 1.293a1 1 0 001.414-1.414l-3-3a1 1 0 00-1.414 0l-3 3a1 1 0 001.414 1.414L9 9.414V13H5.5z" />
+                  <path d="M9 13h2v5a1 1 0 11-2 0v-5z" />
+                </svg>
+              </button>
+              <button 
+                className="bg-red-500 text-white p-2 rounded-full"
+                onClick={handleReplaceImage}
+                title="Remove current image"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
+                </svg>
+              </button>
+            </div>
           </div>
           <p className="mt-2 text-sm text-gray-500">Map uploaded successfully. You can now place employees on the map.</p>
+          <p className="mt-1 text-sm text-gray-500">Need to replace the image? Click the upload button in the top-right corner of the image.</p>
         </div>
       ) : (
         <div 

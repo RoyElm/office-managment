@@ -446,6 +446,16 @@ export default function OfficeMapper() {
                 >
                   Search & Filter
                 </button>
+                <button
+                  className={`py-2 px-1 border-b-2 ${
+                    activeTab === 'upload'
+                      ? 'border-blue-500 text-blue-600'
+                      : 'border-transparent'
+                  }`}
+                  onClick={() => setActiveTab('upload')}
+                >
+                  Change Map
+                </button>
               </nav>
             </div>
             
@@ -481,6 +491,13 @@ export default function OfficeMapper() {
               <SearchFilter
                 employees={employees}
                 onHighlightEmployee={setHighlightedEmployee}
+              />
+            )}
+
+            {activeTab === 'upload' && (
+              <MapUploader 
+                onMapUpload={handleMapUpload} 
+                existingMapImage={mapImage} 
               />
             )}
           </div>
@@ -574,13 +591,29 @@ export default function OfficeMapper() {
 }
 
 function getTeamColor(team: string): string {
-  // Simple hash function to convert team name to a color class
-  const hash = team.split('').reduce((acc, char) => char.charCodeAt(0) + acc, 0);
+  // Try to load teams from localStorage
+  try {
+    const savedTeams = localStorage.getItem('officeMapperTeams');
+    if (savedTeams) {
+      const teams = JSON.parse(savedTeams);
+      const foundTeam = teams.find((t: any) => t.name === team);
+      if (foundTeam) {
+        return foundTeam.color;
+      }
+    }
+  } catch (error) {
+    console.error('Error getting team color from localStorage:', error);
+  }
+
+  // Fallback to hash-based color if team not found in localStorage
   const colors = [
     'bg-blue-400', 'bg-green-400', 'bg-purple-400', 
     'bg-yellow-400', 'bg-red-400', 'bg-indigo-400',
     'bg-pink-400', 'bg-cyan-400', 'bg-emerald-400',
     'bg-orange-400', 'bg-teal-400', 'bg-fuchsia-400'
   ];
+  
+  // Simple hash function to get consistent colors for the same team name
+  const hash = team.split('').reduce((acc, char) => char.charCodeAt(0) + acc, 0);
   return colors[hash % colors.length];
 } 
