@@ -74,10 +74,9 @@ export default function MapUploader({ onMapUpload, existingMapImage }: MapUpload
   };
 
   const handleReplaceImage = () => {
+    // Only clear the preview, don't clear the actual map data
+    // This allows the user to return to the upload interface
     setPreview(null);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
   };
 
   return (

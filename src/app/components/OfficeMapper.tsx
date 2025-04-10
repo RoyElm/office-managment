@@ -243,14 +243,25 @@ export default function OfficeMapper() {
 
   // Handle map upload
   const handleMapUpload = (file: File) => {
+    console.log('Map upload triggered with file:', file.name);
     const reader = new FileReader();
     reader.onload = (e) => {
       if (e.target?.result) {
-        setMapImage(e.target.result as string);
+        // Always update the map image
+        const imageData = e.target.result as string;
+        setMapImage(imageData);
+        console.log('Map image updated successfully');
         
         // If we don't already have a map (first upload), switch to employees tab
         if (!mapImage) {
           setActiveTab('employees');
+        } else {
+          // Show confirmation of map replacement
+          setNotification({
+            message: 'Map successfully replaced!',
+            type: 'success'
+          });
+          setTimeout(() => setNotification(null), 5000);
         }
         
         // Save to database when map is uploaded
