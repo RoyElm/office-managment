@@ -10,12 +10,6 @@ const nextConfig = {
   },
   // Exclude API routes from the static export since they won't work
   distDir: 'out',
-  // Exclude API routes from the build
-  exportPathMap: async function () {
-    return {
-      '/': { page: '/' }
-    };
-  },
   // This is needed for the mongoose global fix
   webpack: (config) => {
     // This is to fix the global is not defined error with mongoose caching
@@ -27,6 +21,8 @@ const nextConfig = {
   eslint: { 
     ignoreDuringBuilds: true 
   },
+  // Explicitly exclude API routes from static build
+  trailingSlash: true,
 };
 
 module.exports = nextConfig; 

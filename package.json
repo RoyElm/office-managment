@@ -9,7 +9,8 @@
     "start": "next start",
     "lint": "next lint",
     "export": "next build",
-    "predeploy": "npm run export",
+    "prepare-gh-pages": "node prepare-github-pages.js",
+    "predeploy": "npm run export && npm run prepare-gh-pages",
     "deploy": "gh-pages -d out"
   },
   "dependencies": {
@@ -28,6 +29,7 @@
     "eslint": "^9",
     "eslint-config-next": "15.3.0",
     "gh-pages": "^6.3.0",
+    "rimraf": "^5.0.10",
     "tailwindcss": "^4",
     "typescript": "^5"
   }
