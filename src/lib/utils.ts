@@ -5,27 +5,13 @@
  * @returns The full API URL
  */
 export function getApiUrl(path: string): string {
-  // Check if we're running in the browser
-  const isBrowser = typeof window !== 'undefined';
-  
-  // Check if we're on GitHub Pages
-  const isGitHubPages = isBrowser && window.location.hostname.includes('github.io');
-  
-  // Check if we're in production
-  const isProduction = process.env.NODE_ENV === 'production';
-  
-  // Base path only needed in production
-  const basePath = isProduction ? '/office-managment' : '';
-  
-  // If we're on GitHub Pages, we want to redirect API requests to our serverless functions
-  // or just use localStorage (our current approach)
-  if (isGitHubPages) {
-    // Return null to indicate that the API should not be called
-    // and the app should use localStorage instead
-    return '';
+  // In production (GitHub Pages), use the external API service
+  if (process.env.NODE_ENV === 'production') {
+    return `${process.env.API_BASE_URL}/api/${path}`;
   }
   
-  return `${basePath}/api/${path}`;
+  // In development, use relative URLs
+  return `/api/${path}`;
 }
 
 /**
@@ -33,17 +19,14 @@ export function getApiUrl(path: string): string {
  * @returns boolean indicating if offline mode should be used
  */
 export function shouldUseOfflineMode(): boolean {
-  // Always use offline mode in static exports (GitHub Pages)
-  if (process.env.IS_STATIC_EXPORT === 'true') {
+  // Only use offline mode if explicitly set
+  if (process.env.FORCE_OFFLINE === 'true') {
     return true;
   }
   
-  // Check if we're running in the browser
-  const isBrowser = typeof window !== 'undefined';
-  
-  // Use offline mode if we're on GitHub Pages
-  if (isBrowser && window.location.hostname.includes('github.io')) {
-    return true;
+  // If we have an API_BASE_URL set, don't use offline mode
+  if (process.env.API_BASE_URL) {
+    return false;
   }
   
   return false;

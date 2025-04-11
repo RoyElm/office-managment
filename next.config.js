@@ -10,6 +10,9 @@ const nextConfig = {
   env: {
     MONGODB_URI: process.env.MONGODB_URI,
     IS_STATIC_EXPORT: 'true', // Add flag to detect static export mode in components
+    API_BASE_URL: process.env.NODE_ENV === 'production' 
+      ? 'https://your-api-url.vercel.app' // Replace with your actual API URL
+      : '' // Empty string means use relative URLs in development
   },
   // Enable experimental features to improve API compatibility
   experimental: {

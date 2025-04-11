@@ -10,7 +10,7 @@ import MapPreviewModal from './MapPreviewModal';
 import MapSelector from './MapSelector';
 import { IEmployee, IRoom, IOfficeMap } from '../../lib/models';
 import { useSearchParams } from 'next/navigation';
-import { shouldUseOfflineMode } from '../../lib/utils';
+import { shouldUseOfflineMode, getApiUrl } from '../../lib/utils';
 
 interface Employee {
   id: string;
@@ -103,9 +103,10 @@ export default function OfficeMapper() {
       
       // Load from database
       console.log('Attempting to load maps from database...');
-      // Fix API path for GitHub Pages
-      const basePath = process.env.NODE_ENV === 'production' ? '/office-managment' : '';
-      const response = await fetch(`${basePath}/api/office-map`);
+      const apiUrl = getApiUrl('office-map');
+      console.log('Using API URL:', apiUrl);
+      
+      const response = await fetch(apiUrl);
       console.log('API response status:', response.status);
       
       if (response.ok) {
@@ -185,9 +186,10 @@ export default function OfficeMapper() {
       }
       
       // Load from database
-      // Fix API path for GitHub Pages
-      const basePath = process.env.NODE_ENV === 'production' ? '/office-managment' : '';
-      const response = await fetch(`${basePath}/api/office-map?id=${mapId}`);
+      const apiUrl = getApiUrl(`office-map?id=${mapId}`);
+      console.log('Using API URL:', apiUrl);
+      
+      const response = await fetch(apiUrl);
       
       if (response.ok) {
         const result = await response.json();
@@ -319,9 +321,10 @@ export default function OfficeMapper() {
     setIsSaving(true);
     
     try {
-      // Fix API path for GitHub Pages
-      const basePath = process.env.NODE_ENV === 'production' ? '/office-managment' : '';
-      const response = await fetch(`${basePath}/api/office-map`, {
+      const apiUrl = getApiUrl('office-map');
+      console.log('Using API URL for save:', apiUrl);
+      
+      const response = await fetch(apiUrl, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -514,9 +517,10 @@ export default function OfficeMapper() {
     setIsLoading(true);
     
     try {
-      // Fix API path for GitHub Pages
-      const basePath = process.env.NODE_ENV === 'production' ? '/office-managment' : '';
-      const response = await fetch(`${basePath}/api/office-map`, {
+      const apiUrl = getApiUrl('office-map');
+      console.log('Using API URL for new map:', apiUrl);
+      
+      const response = await fetch(apiUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -596,9 +600,10 @@ export default function OfficeMapper() {
     }
     
     try {
-      // Fix API path for GitHub Pages
-      const basePath = process.env.NODE_ENV === 'production' ? '/office-managment' : '';
-      const response = await fetch(`${basePath}/api/office-map?id=${mapId}`, {
+      const apiUrl = getApiUrl(`office-map?id=${mapId}`);
+      console.log('Using API URL for delete:', apiUrl);
+      
+      const response = await fetch(apiUrl, {
         method: 'DELETE',
       });
       
@@ -650,7 +655,10 @@ export default function OfficeMapper() {
         showNotification('Map renamed successfully', 'success');
       } else {
         // Update map in database
-        const response = await fetch('/api/office-map', {
+        const apiUrl = getApiUrl('office-map');
+        console.log('Using API URL for rename:', apiUrl);
+        
+        const response = await fetch(apiUrl, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json'
