@@ -46,6 +46,16 @@ export default function OfficeMapper() {
   const [isSaving, setIsSaving] = useState(false);
   const [isOfflineMode, setIsOfflineMode] = useState(false);
   
+  // Check if we're in a static export environment like GitHub Pages
+  useEffect(() => {
+    // Auto-switch to offline mode when in static export environment (GitHub Pages)
+    if (process.env.IS_STATIC_EXPORT === 'true' || 
+        window.location.hostname.includes('github.io')) {
+      console.log('Static export environment detected - switching to offline mode');
+      setIsOfflineMode(true);
+    }
+  }, []);
+  
   // Check URL parameters for direct highlighting
   useEffect(() => {
     if (searchParams) {
@@ -93,7 +103,9 @@ export default function OfficeMapper() {
       
       // Load from database
       console.log('Attempting to load maps from database...');
-      const response = await fetch('/api/office-map');
+      // Fix API path for GitHub Pages
+      const basePath = process.env.NODE_ENV === 'production' ? '/office-managment' : '';
+      const response = await fetch(`${basePath}/api/office-map`);
       console.log('API response status:', response.status);
       
       if (response.ok) {
@@ -173,7 +185,9 @@ export default function OfficeMapper() {
       }
       
       // Load from database
-      const response = await fetch(`/api/office-map?id=${mapId}`);
+      // Fix API path for GitHub Pages
+      const basePath = process.env.NODE_ENV === 'production' ? '/office-managment' : '';
+      const response = await fetch(`${basePath}/api/office-map?id=${mapId}`);
       
       if (response.ok) {
         const result = await response.json();
@@ -271,85 +285,53 @@ export default function OfficeMapper() {
   
   // Load initial data 
   useEffect(() => {
-    // Check if we're on GitHub Pages deployment
-    const isGitHubPages = typeof window !== 'undefined' && 
-      window.location.hostname.includes('github.io');
-    
-    // If on GitHub Pages, don't immediately switch to offline mode
-    // as we might have a database configured
-    if (isGitHubPages) {
-      console.log('GitHub Pages deployment detected - checking database availability');
-    }
-    
     // Load maps list which will then load specific map
     loadMapsList();
   }, []);
   
-  // Save data to database
+  // Save all data to the database
   const saveToDatabase = async () => {
-    if (!mapImage || !currentMapId) return;
+    if (isOfflineMode) {
+      // In offline mode, save to localStorage
+      if (currentMapId) {
+        try {
+          const mapData = {
+            mapImage,
+            employees,
+            rooms
+          };
+          localStorage.setItem(`officeMapperData_${currentMapId}`, JSON.stringify(mapData));
+          showNotification('Saved to local storage', 'success');
+        } catch (error) {
+          console.error('Error saving to localStorage:', error);
+          showNotification('Failed to save to local storage', 'error');
+        }
+      }
+      return;
+    }
+    
+    // If we don't have a current map ID, create a new map
+    if (!currentMapId) {
+      return handleAddNewMap();
+    }
+    
+    // Otherwise, update existing map
+    setIsSaving(true);
     
     try {
-      setIsSaving(true);
-      
-      // Always save to localStorage as backup
-      try {
-        // Save map data
-        localStorage.setItem(`officeMapperData_${currentMapId}`, JSON.stringify({
-          mapImage,
-          employees,
-          rooms
-        }));
-        
-        // Update thumbnail in maps list
-        const updatedMaps = maps.map(map => {
-          if (map.id === currentMapId) {
-            return { ...map, thumbnail: mapImage };
-          }
-          return map;
-        });
-        setMaps(updatedMaps);
-        localStorage.setItem('officeMapperMaps', JSON.stringify(updatedMaps));
-      } catch (localError) {
-        console.error('Error saving to localStorage:', localError);
-      }
-      
-      // Skip MongoDB save if in offline mode
-      if (isOfflineMode) {
-        setNotification({
-          message: 'Data saved locally (offline mode)',
-          type: 'success'
-        });
-        setTimeout(() => setNotification(null), 5000);
-        setIsSaving(false);
-        return;
-      }
-      
-      // Convert employees to database format
-      const dbEmployees = employees.map(emp => ({
-        name: emp.name,
-        position: emp.position,
-        team: emp.team
-      }));
-      
-      // Convert rooms to database format
-      const dbRooms = rooms.map(room => ({
-        name: room.name,
-        position: room.position
-      }));
-      
-      // Update existing map
-      const response = await fetch('/api/office-map', {
+      // Fix API path for GitHub Pages
+      const basePath = process.env.NODE_ENV === 'production' ? '/office-managment' : '';
+      const response = await fetch(`${basePath}/api/office-map`, {
         method: 'PUT',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           id: currentMapId,
           mapImage,
-          employees: dbEmployees,
-          rooms: dbRooms
-        })
+          employees,
+          rooms
+        }),
       });
       
       if (response.ok) {
@@ -496,22 +478,15 @@ export default function OfficeMapper() {
     }
   }, [highlightedEmployee]);
 
-  // Create a new map
+  // Create a new empty map
   const handleAddNewMap = async () => {
-    const mapName = prompt('Enter a name for your new map', 'New Map');
-    
-    // If user cancelled the prompt
-    if (mapName === null) return;
-    
-    try {
-      setIsLoading(true);
-      
-      if (isOfflineMode) {
-        // Create a new map in localStorage
-        const newMapId = `map-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
-        const newMap: MapInfo = {
-          id: newMapId,
-          name: mapName || 'Untitled Map',
+    if (isOfflineMode) {
+      // In offline mode, create in localStorage
+      try {
+        const newId = `local-${Date.now()}`;
+        const newMap = {
+          id: newId,
+          name: 'New Office Map',
           thumbnail: '',
           created: new Date().toISOString()
         };
@@ -521,59 +496,60 @@ export default function OfficeMapper() {
         setMaps(updatedMaps);
         localStorage.setItem('officeMapperMaps', JSON.stringify(updatedMaps));
         
-        // Initialize empty map data
-        const newMapData = {
-          mapImage: null,
-          employees: [],
-          rooms: []
-        };
-        localStorage.setItem(`officeMapperData_${newMapId}`, JSON.stringify(newMapData));
-        
-        // Select the new map
-        setCurrentMapId(newMapId);
+        // Set as current map
+        setCurrentMapId(newId);
         setMapImage(null);
         setEmployees([]);
         setRooms([]);
         setActiveTab('upload');
         
-        showNotification('New map created successfully', 'success');
-      } else {
-        // Create new map in database
-        const response = await fetch('/api/office-map', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            name: mapName || 'Untitled Map',
-            mapImage: '',
-            employees: [],
-            rooms: []
-          })
-        });
+        showNotification('New map created (offline mode)', 'success');
+      } catch (error) {
+        console.error('Error creating new map in localStorage:', error);
+        showNotification('Failed to create new map', 'error');
+      }
+      return;
+    }
+    
+    setIsLoading(true);
+    
+    try {
+      // Fix API path for GitHub Pages
+      const basePath = process.env.NODE_ENV === 'production' ? '/office-managment' : '';
+      const response = await fetch(`${basePath}/api/office-map`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: 'New Office Map',
+          mapImage: '',
+          employees: [],
+          rooms: []
+        }),
+      });
+      
+      if (response.ok) {
+        const result = await response.json();
         
-        if (response.ok) {
-          const result = await response.json();
+        if (result.data) {
+          // Refresh the maps list
+          await loadMapsList();
           
-          if (result.data) {
-            // Refresh the maps list
-            await loadMapsList();
-            
-            // Select the new map
-            setCurrentMapId(result.data._id);
-            setMapImage(null);
-            setEmployees([]);
-            setRooms([]);
-            setActiveTab('upload');
-            
-            showNotification('New map created successfully', 'success');
-          }
-        } else if (response.status === 500) {
-          switchToOfflineMode();
-          showNotification('Failed to create map in database, working in offline mode', 'error');
-        } else {
-          showNotification('Failed to create new map', 'error');
+          // Select the new map
+          setCurrentMapId(result.data._id);
+          setMapImage(null);
+          setEmployees([]);
+          setRooms([]);
+          setActiveTab('upload');
+          
+          showNotification('New map created successfully', 'success');
         }
+      } else if (response.status === 500) {
+        switchToOfflineMode();
+        showNotification('Failed to create map in database, working in offline mode', 'error');
+      } else {
+        showNotification('Failed to create new map', 'error');
       }
     } catch (error) {
       console.error('Error creating new map:', error);
@@ -584,24 +560,59 @@ export default function OfficeMapper() {
     }
   };
   
-  // Delete a map
+  // Delete the current map
   const handleDeleteMap = async (mapId: string) => {
-    try {
-      setIsLoading(true);
-      
-      if (isOfflineMode) {
-        // Remove from maps list
+    if (isOfflineMode) {
+      // In offline mode, delete from localStorage
+      try {
+        // Remove map data
+        localStorage.removeItem(`officeMapperData_${mapId}`);
+        
+        // Update maps list
         const updatedMaps = maps.filter(map => map.id !== mapId);
         setMaps(updatedMaps);
         localStorage.setItem('officeMapperMaps', JSON.stringify(updatedMaps));
         
-        // Remove map data
-        localStorage.removeItem(`officeMapperData_${mapId}`);
+        // If deleting the current map, reset state
+        if (mapId === currentMapId) {
+          setCurrentMapId(null);
+          setMapImage(null);
+          setEmployees([]);
+          setRooms([]);
+          setActiveTab('upload');
+          
+          // If we have other maps, load the first one
+          if (updatedMaps.length > 0) {
+            loadSpecificMap(updatedMaps[0].id);
+          }
+        }
+        
+        showNotification('Map deleted (offline mode)', 'success');
+      } catch (error) {
+        console.error('Error deleting map from localStorage:', error);
+        showNotification('Failed to delete map', 'error');
+      }
+      return;
+    }
+    
+    try {
+      // Fix API path for GitHub Pages
+      const basePath = process.env.NODE_ENV === 'production' ? '/office-managment' : '';
+      const response = await fetch(`${basePath}/api/office-map?id=${mapId}`, {
+        method: 'DELETE',
+      });
+      
+      if (response.ok) {
+        // Refresh the maps list
+        await loadMapsList();
         
         // If this was the current map, select another one
         if (mapId === currentMapId) {
-          if (updatedMaps.length > 0) {
-            loadSpecificMap(updatedMaps[0].id);
+          if (maps.length > 1) {
+            const nextMap = maps.find(map => map.id !== mapId);
+            if (nextMap) {
+              loadSpecificMap(nextMap.id);
+            }
           } else {
             setCurrentMapId(null);
             setMapImage(null);
@@ -612,46 +623,16 @@ export default function OfficeMapper() {
         }
         
         showNotification('Map deleted successfully', 'success');
+      } else if (response.status === 500) {
+        switchToOfflineMode();
+        showNotification('Failed to delete map from database, working in offline mode', 'error');
       } else {
-        // Delete map from database
-        const response = await fetch(`/api/office-map?id=${mapId}`, {
-          method: 'DELETE'
-        });
-        
-        if (response.ok) {
-          // Refresh the maps list
-          await loadMapsList();
-          
-          // If this was the current map, select another one
-          if (mapId === currentMapId) {
-            if (maps.length > 1) {
-              const nextMap = maps.find(map => map.id !== mapId);
-              if (nextMap) {
-                loadSpecificMap(nextMap.id);
-              }
-            } else {
-              setCurrentMapId(null);
-              setMapImage(null);
-              setEmployees([]);
-              setRooms([]);
-              setActiveTab('upload');
-            }
-          }
-          
-          showNotification('Map deleted successfully', 'success');
-        } else if (response.status === 500) {
-          switchToOfflineMode();
-          showNotification('Failed to delete map from database, working in offline mode', 'error');
-        } else {
-          showNotification('Failed to delete map', 'error');
-        }
+        showNotification('Failed to delete map', 'error');
       }
     } catch (error) {
       console.error('Error deleting map:', error);
       switchToOfflineMode();
       showNotification('Error deleting map, switching to offline mode', 'error');
-    } finally {
-      setIsLoading(false);
     }
   };
   
@@ -1019,30 +1000,19 @@ export default function OfficeMapper() {
   );
 }
 
+// Get team color based on team name
 function getTeamColor(team: string): string {
-  // Try to load teams from localStorage
-  try {
-    const savedTeams = localStorage.getItem('officeMapperTeams');
-    if (savedTeams) {
-      const teams = JSON.parse(savedTeams);
-      const foundTeam = teams.find((t: any) => t.name === team);
-      if (foundTeam) {
-        return foundTeam.color;
-      }
-    }
-  } catch (error) {
-    console.error('Error getting team color from localStorage:', error);
-  }
-
-  // Fallback to hash-based color if team not found in localStorage
   const colors = [
-    'bg-blue-400', 'bg-green-400', 'bg-purple-400', 
-    'bg-yellow-400', 'bg-red-400', 'bg-indigo-400',
-    'bg-pink-400', 'bg-cyan-400', 'bg-emerald-400',
-    'bg-orange-400', 'bg-teal-400', 'bg-fuchsia-400'
+    '#FF5733', '#33FF57', '#3357FF', '#F033FF', '#FF33F6',
+    '#33FFF6', '#F6FF33', '#FF8333', '#33FF83', '#8333FF'
   ];
   
-  // Simple hash function to get consistent colors for the same team name
-  const hash = team.split('').reduce((acc, char) => char.charCodeAt(0) + acc, 0);
+  // Simple hash function to consistently map team names to colors
+  let hash = 0;
+  for (let i = 0; i < team.length; i++) {
+    hash = team.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  hash = Math.abs(hash);
+  
   return colors[hash % colors.length];
 } 

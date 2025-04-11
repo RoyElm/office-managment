@@ -9,6 +9,7 @@ const nextConfig = {
   reactStrictMode: true,
   env: {
     MONGODB_URI: process.env.MONGODB_URI,
+    IS_STATIC_EXPORT: 'true', // Add flag to detect static export mode in components
   },
   // Enable experimental features to improve API compatibility
   experimental: {
