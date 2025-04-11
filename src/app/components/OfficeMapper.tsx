@@ -68,6 +68,7 @@ export default function OfficeMapper() {
   const loadMapsList = async () => {
     try {
       if (isOfflineMode) {
+        console.log('Using offline mode to load maps');
         // Load maps from localStorage
         try {
           const savedMapsStr = localStorage.getItem('officeMapperMaps');
@@ -91,10 +92,13 @@ export default function OfficeMapper() {
       }
       
       // Load from database
+      console.log('Attempting to load maps from database...');
       const response = await fetch('/api/office-map');
+      console.log('API response status:', response.status);
       
       if (response.ok) {
         const result = await response.json();
+        console.log('Received maps data:', result.data ? `${result.data.length} maps` : 'No maps');
         
         if (result.data && Array.isArray(result.data)) {
           const mapsList = result.data.map((map: any) => ({
@@ -119,6 +123,13 @@ export default function OfficeMapper() {
         }
       } else {
         console.error('Failed to fetch maps list:', response.statusText);
+        // Try to get more error details
+        try {
+          const errorData = await response.json();
+          console.error('API error details:', errorData);
+        } catch (e) {
+          console.error('Could not parse error response');
+        }
         switchToOfflineMode();
       }
     } catch (error) {
@@ -385,6 +396,14 @@ export default function OfficeMapper() {
         setMapImage(imageData);
         console.log('Map image updated successfully');
         
+        // Save to database immediately after upload
+        setTimeout(() => {
+          if (currentMapId) {
+            console.log('Saving map after upload...');
+            saveToDatabase();
+          }
+        }, 500);
+        
         // If we don't already have a map (first upload), switch to employees tab
         if (!mapImage) {
           setActiveTab('employees');
@@ -396,9 +415,6 @@ export default function OfficeMapper() {
           });
           setTimeout(() => setNotification(null), 5000);
         }
-        
-        // Save to database when map is uploaded
-        setTimeout(() => saveToDatabase(), 500);
       }
     };
     reader.readAsDataURL(file);

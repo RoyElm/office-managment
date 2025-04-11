@@ -4,7 +4,9 @@ import mongoose from 'mongoose';
 const MONGODB_URI = process.env.MONGODB_URI || '';
 
 if (!MONGODB_URI) {
-  console.warn('MongoDB URI not found. If running in development without MongoDB, the app will use localStorage.');
+  console.warn('MongoDB URI not found in environment. If running in development without MongoDB, the app will use localStorage.');
+} else {
+  console.log('MongoDB URI found, will attempt connection when needed');
 }
 
 // Better error handling for authentication issues
@@ -26,32 +28,41 @@ let globalMongoose = {
 async function dbConnect() {
   // If no MongoDB URI is provided, throw a specific error that can be caught
   if (!MONGODB_URI) {
+    console.error('MONGODB_URI not configured - app will use localStorage fallback');
     throw new Error('MONGODB_URI not configured');
   }
 
   if (globalMongoose.conn) {
+    console.log('Using existing MongoDB connection');
     return globalMongoose.conn;
   }
 
   if (!globalMongoose.promise) {
     const opts = {
       bufferCommands: false,
+      serverSelectionTimeoutMS: 5000, // Reduce timeout to fail faster
+      connectTimeoutMS: 5000,
     };
 
+    console.log('Connecting to MongoDB...');
     try {
       globalMongoose.promise = mongoose.connect(MONGODB_URI, opts)
         .then(mongoose => {
-          console.log('Connected to MongoDB');
+          console.log('Connected to MongoDB successfully');
           return mongoose.connection;
         })
         .catch(error => {
           console.error('MongoDB connection error:', error);
+          globalMongoose.promise = null; // Clear the promise to allow retry
           throw error;
         });
     } catch (error) {
       console.error('Failed to start MongoDB connection:', error);
+      globalMongoose.promise = null; // Clear the promise to allow retry
       throw error;
     }
+  } else {
+    console.log('Using existing MongoDB connection promise');
   }
   
   try {
@@ -59,6 +70,7 @@ async function dbConnect() {
     return globalMongoose.conn;
   } catch (error) {
     console.error('Failed to establish MongoDB connection:', error);
+    globalMongoose.promise = null; // Clear the promise to allow retry next time
     throw error;
   }
 }
