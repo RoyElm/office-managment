@@ -1,16 +1,16 @@
 {
   "name": "office-managment",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "private": true,
   "homepage": "https://royelm.github.io/office-managment",
   "scripts": {
-    "dev": "next dev --turbopack",
+    "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "export": "next build",
+    "export": "next export",
     "prepare-gh-pages": "node prepare-github-pages.js",
-    "predeploy": "npm run export && npm run prepare-gh-pages",
+    "predeploy": "npm run build && npm run export && npm run prepare-gh-pages",
     "deploy": "gh-pages -d out",
     "clean": "rimraf .next out"
   },

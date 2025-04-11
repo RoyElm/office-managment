@@ -32,28 +32,25 @@ jobs:
       - name: Clean Next.js cache 🧹
         run: npm run clean || true
 
-      - name: Build 🔧
+      - name: Build and Export 🔧
         env:
           MONGODB_URI: ${{ secrets.MONGODB_URI }}
-          # Force timestamp to prevent caching
-          BUILD_TIMESTAMP: ${{ github.run_number }}-${{ github.run_id }}-${{ github.sha }}
-        run: npm run build
-
-      - name: Export 📤
-        env:
-          MONGODB_URI: ${{ secrets.MONGODB_URI }}
-        run: npm run export
-
-      - name: Prepare for GitHub Pages 🔧
+          NODE_ENV: production
         run: |
-          cp -r out/* .
-          touch .nojekyll
+          npm run build
+          npm run export || true
+          npm run prepare-gh-pages
+
+      - name: Add cache control headers ✓
+        run: |
+          echo "Adding cache control headers..."
+          touch out/.nojekyll
           echo "Last updated: $(date)" > out/build-info.txt
 
       - name: Deploy to GitHub Pages 🚀
         uses: JamesIves/github-pages-deploy-action@v4
         with:
-          folder: out # The folder the action should deploy
+          folder: out
           token: ${{ secrets.GITHUB_TOKEN }}
-          branch: gh-pages # The branch the action should deploy to
-          clean: true # Automatically remove deleted files from the deploy branch 
+          branch: gh-pages
+          clean: true 

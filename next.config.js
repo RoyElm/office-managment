@@ -2,9 +2,11 @@
 const nextConfig = {
   output: 'export',  // Enable static exports
   basePath: process.env.NODE_ENV === 'production' ? '/office-managment' : '',
+  assetPrefix: process.env.NODE_ENV === 'production' ? '/office-managment/' : '',
   images: {
     unoptimized: true, // This is necessary for static export
   },
+  reactStrictMode: true,
   env: {
     MONGODB_URI: process.env.MONGODB_URI,
   },
