@@ -1,14 +1,10 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Use output 'export' for GitHub Pages and 'standalone' for Vercel
-  output: process.env.GITHUB_ACTIONS === 'true' ? 'export' : 'standalone',
-  
-  // Base path and asset prefix only needed for GitHub Pages
-  basePath: process.env.GITHUB_ACTIONS === 'true' ? '/office-managment' : '',
-  assetPrefix: process.env.GITHUB_ACTIONS === 'true' ? '/office-managment/' : '',
+  // Optimized for Vercel deployment
+  output: 'standalone',
   
   images: {
-    unoptimized: true, // Needed for GitHub Pages static export
+    unoptimized: true, // Needed for backward compatibility
   },
   
   reactStrictMode: true,
@@ -28,10 +24,7 @@ const nextConfig = {
   // Ignore ESLint errors during build
   eslint: { 
     ignoreDuringBuilds: true 
-  },
-  
-  // Add trailing slash only for GitHub Pages
-  trailingSlash: process.env.GITHUB_ACTIONS === 'true',
+  }
 };
 
 module.exports = nextConfig; 

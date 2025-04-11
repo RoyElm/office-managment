@@ -93,12 +93,7 @@ export default function OfficeMapper() {
       
       // Load from database
       console.log('Attempting to load maps from database...');
-      
-      // Handle base path for GitHub Pages vs Vercel
-      const basePath = typeof window !== 'undefined' && 
-        window.location.hostname.includes('github.io') ? '/office-managment' : '';
-      
-      const response = await fetch(`${basePath}/api/office-map`);
+      const response = await fetch('/api/office-map');
       console.log('API response status:', response.status);
       
       if (response.ok) {
@@ -170,11 +165,7 @@ export default function OfficeMapper() {
       }
       
       // Load from database
-      // Handle base path for GitHub Pages vs Vercel
-      const basePath = typeof window !== 'undefined' && 
-        window.location.hostname.includes('github.io') ? '/office-managment' : '';
-      
-      const response = await fetch(`${basePath}/api/office-map?id=${mapId}`);
+      const response = await fetch(`/api/office-map?id=${mapId}`);
       
       if (response.ok) {
         const result = await response.json();
@@ -276,12 +267,6 @@ export default function OfficeMapper() {
     loadMapsList();
   }, []);
   
-  // Get the API base path
-  const getBasePath = () => {
-    return typeof window !== 'undefined' && 
-      window.location.hostname.includes('github.io') ? '/office-managment' : '';
-  };
-
   // Save all data to the database
   const saveToDatabase = async () => {
     if (!mapImage || !currentMapId) return;
@@ -336,8 +321,7 @@ export default function OfficeMapper() {
       }));
       
       // Update existing map
-      const basePath = getBasePath();
-      const response = await fetch(`${basePath}/api/office-map`, {
+      const response = await fetch('/api/office-map', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json'
@@ -532,8 +516,7 @@ export default function OfficeMapper() {
         showNotification('New map created successfully', 'success');
       } else {
         // Create new map in database
-        const basePath = getBasePath();
-        const response = await fetch(`${basePath}/api/office-map`, {
+        const response = await fetch('/api/office-map', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
@@ -609,8 +592,7 @@ export default function OfficeMapper() {
         showNotification('Map deleted successfully', 'success');
       } else {
         // Delete map from database
-        const basePath = getBasePath();
-        const response = await fetch(`${basePath}/api/office-map?id=${mapId}`, {
+        const response = await fetch('/api/office-map?id=' + mapId, {
           method: 'DELETE'
         });
         
@@ -665,8 +647,7 @@ export default function OfficeMapper() {
         showNotification('Map renamed successfully', 'success');
       } else {
         // Update map in database
-        const basePath = getBasePath();
-        const response = await fetch(`${basePath}/api/office-map`, {
+        const response = await fetch('/api/office-map', {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json'
