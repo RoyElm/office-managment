@@ -31,6 +31,7 @@ jobs:
         env:
           MONGODB_URI: ${{ secrets.MONGODB_URI }}
           NODE_ENV: production
+          GITHUB_ACTIONS: true
         run: npm run build
       
       - name: Upload artifact
