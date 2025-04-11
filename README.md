@@ -1,16 +1,27 @@
-# OfficeMapper
+# Office Management App
 
-A web application for managing office seating arrangements with interactive maps. Upload office floor plans, place employees, assign teams, and manage room names, all with a user-friendly interface.
+An interactive office mapping and employee management application built with Next.js.
 
 ## Features
 
-- **Map Upload**: Upload an office map image (JPG, PNG)
-- **Employee Placement**: Interactive map interface to place and name employee locations
-- **Team Assignment**: Add/edit team or group assignments for each seating location
-- **Room Renaming**: Rename office rooms directly on the map
-- **Search & Filter**: Search and filter employees and team assignments
-- **Database Storage**: All data is saved in MongoDB
-- **CSV Import**: Import employees from a CSV file with first name and last name columns
+- Interactive office map with employee locations
+- Multiple map support
+- Team management 
+- Room naming and categorization
+- Employee location highlighting
+- QR code generation for each employee
+- Works in both online (MongoDB) and offline (localStorage) modes
+
+## Tech Stack
+
+- Next.js
+- TypeScript
+- MongoDB (with fallback to localStorage)
+- GitHub Pages deployment
+
+## Deployment
+
+The application is automatically deployed to GitHub Pages through GitHub Actions.
 
 ## Setup Instructions
 
