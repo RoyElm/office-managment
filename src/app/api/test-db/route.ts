@@ -1,6 +1,6 @@
 // Dynamic API routes for MongoDB connection
-// export const dynamic = 'force-static';
-// export const revalidate = false;
+export const dynamic = 'force-static';
+export const revalidate = false;
 export const dynamicParams = false;
 
 import { NextResponse } from 'next/server';
