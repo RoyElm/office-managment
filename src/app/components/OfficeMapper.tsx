@@ -10,6 +10,7 @@ import MapPreviewModal from './MapPreviewModal';
 import MapSelector from './MapSelector';
 import { IEmployee, IRoom, IOfficeMap } from '../../lib/models';
 import { useSearchParams } from 'next/navigation';
+import { shouldUseOfflineMode } from '../../lib/utils';
 
 interface Employee {
   id: string;
@@ -49,8 +50,7 @@ export default function OfficeMapper() {
   // Check if we're in a static export environment like GitHub Pages
   useEffect(() => {
     // Auto-switch to offline mode when in static export environment (GitHub Pages)
-    if (process.env.IS_STATIC_EXPORT === 'true' || 
-        window.location.hostname.includes('github.io')) {
+    if (shouldUseOfflineMode()) {
       console.log('Static export environment detected - switching to offline mode');
       setIsOfflineMode(true);
     }

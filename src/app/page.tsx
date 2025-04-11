@@ -7,16 +7,23 @@ import dynamic from 'next/dynamic';
 // Use dynamic import to avoid hydration issues with client components
 const OfficeMapper = dynamic(() => import('./components/OfficeMapper'));
 
+// Add GitHub Pages helper message
+const GitHubPagesNote = () => (
+  <div className="fixed bottom-0 left-0 right-0 bg-blue-600 text-white p-2 text-center text-sm">
+    Running on GitHub Pages - Using local storage for data. API routes aren't available in static export mode.
+  </div>
+);
+
 export default function Home() {
   return (
     <>
-      {/* Version: 1.0.3 - Fixed Deployment with QR Export Feature */}
+      {/* Version: 1.0.4 - Fixed GitHub Pages deployment with offline mode */}
       <Suspense fallback={<div className="flex h-screen w-full items-center justify-center">Loading...</div>}>
-        <div className="fixed top-0 right-0 bg-blue-500 text-white px-2 py-1 text-xs z-50 opacity-50 hover:opacity-100">
-          v1.0.3
-        </div>
         <OfficeMapper />
       </Suspense>
+      
+      {/* Only show GitHub Pages note in production */}
+      {process.env.NODE_ENV === 'production' && <GitHubPagesNote />}
     </>
   );
 }
