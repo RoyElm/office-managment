@@ -11,7 +11,8 @@
     "export": "next build",
     "prepare-gh-pages": "node prepare-github-pages.js",
     "predeploy": "npm run export && npm run prepare-gh-pages",
-    "deploy": "gh-pages -d out"
+    "deploy": "gh-pages -d out",
+    "clean": "rimraf .next out"
   },
   "dependencies": {
     "mongodb": "^6.15.0",

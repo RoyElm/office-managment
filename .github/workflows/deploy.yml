@@ -25,15 +25,20 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: '20'
-          # Temporarily disable cache to force clean build
-          # cache: 'npm'
+          # Completely disable cache to force clean build
+          cache: 'none'
 
       - name: Install dependencies 📥
         run: npm ci
 
+      - name: Clean Next.js cache 🧹
+        run: npm run clean || true
+
       - name: Build 🔧
         env:
           MONGODB_URI: ${{ secrets.MONGODB_URI }}
+          # Force timestamp to prevent caching
+          BUILD_TIMESTAMP: ${{ github.run_number }}-${{ github.run_id }}-${{ github.sha }}
         run: npm run build
 
       - name: Export 📤
@@ -45,6 +50,7 @@ jobs:
         run: |
           cp -r out/* .
           touch .nojekyll
+          echo "Last updated: $(date)" > out/build-info.txt
 
       - name: Deploy to GitHub Pages 🚀
         uses: JamesIves/github-pages-deploy-action@v4

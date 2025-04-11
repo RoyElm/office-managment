@@ -1,3 +1,4 @@
+{/** Force deployment refresh: ${new Date().toISOString()} **/}
 'use client';
 
 import dynamic from 'next/dynamic';
