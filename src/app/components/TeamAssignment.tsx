@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import EmployeeQRCode from './EmployeeQRCode';
+import EmployeeQRExport from './EmployeeQRExport';
 
 interface Team {
   id: string;
@@ -44,6 +45,7 @@ export default function TeamAssignment({
   const [newTeamName, setNewTeamName] = useState('');
   const [newTeamColor, setNewTeamColor] = useState(TEAM_COLORS[0]);
   const [baseUrl, setBaseUrl] = useState('');
+  const [showQRExport, setShowQRExport] = useState(false);
 
   // Get the base URL for QR codes
   useEffect(() => {
@@ -149,6 +151,17 @@ export default function TeamAssignment({
     <div className="w-full">
       <h2 className="text-xl font-semibold mb-4">Team Assignment</h2>
       
+      {/* Show QR Export when enabled */}
+      {showQRExport && baseUrl && (
+        <div className="fixed inset-0 bg-white z-50">
+          <EmployeeQRExport 
+            employees={employees} 
+            baseUrl={baseUrl} 
+            onClose={() => setShowQRExport(false)} 
+          />
+        </div>
+      )}
+      
       <div className="mb-6">
         <h3 className="font-medium mb-2">Teams</h3>
         <div className="flex gap-2 flex-wrap mb-3">
@@ -200,7 +213,17 @@ export default function TeamAssignment({
       </div>
       
       <div>
-        <h3 className="font-medium mb-2">Employees</h3>
+        <div className="flex justify-between items-center mb-2">
+          <h3 className="font-medium">Employees</h3>
+          {employees.length > 0 && baseUrl && (
+            <button
+              onClick={() => setShowQRExport(true)}
+              className="px-3 py-1 bg-purple-500 text-white rounded-md text-sm hover:bg-purple-600 transition-colors"
+            >
+              Export QR Codes
+            </button>
+          )}
+        </div>
         <table className="w-full border-collapse">
           <thead>
             <tr className="bg-gray-100">
@@ -258,6 +281,7 @@ export default function TeamAssignment({
           <p className="mt-2 text-sm text-gray-500">
             Click on an employee row to highlight their location on the map. 
             Use the "Show QR" button to generate a QR code that links directly to an employee's location.
+            Use "Export QR Codes" to generate a printable page with all employee QR codes.
           </p>
         )}
       </div>
