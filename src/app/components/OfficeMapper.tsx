@@ -44,7 +44,6 @@ export default function OfficeMapper() {
   const [notification, setNotification] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
-  const [isOfflineMode, setIsOfflineMode] = useState(false);
   
   // Check URL parameters for direct highlighting
   useEffect(() => {
@@ -67,37 +66,27 @@ export default function OfficeMapper() {
   // Load the list of maps
   const loadMapsList = async () => {
     try {
-      if (isOfflineMode) {
-        console.log('Using offline mode to load maps');
-        // Load maps from localStorage
-        try {
-          const savedMapsStr = localStorage.getItem('officeMapperMaps');
-          if (savedMapsStr) {
-            const savedMaps = JSON.parse(savedMapsStr) as MapInfo[];
-            setMaps(savedMaps);
-            
-            // If we have maps but no current map, select the first one
-            if (savedMaps.length > 0 && !currentMapId) {
-              loadSpecificMap(savedMaps[0].id);
-            }
-          } else if (!currentMapId) {
-            // Initialize with empty data if no maps exist
-            setIsLoading(false);
-          }
-        } catch (error) {
-          console.error('Error loading maps from localStorage:', error);
-          setIsLoading(false);
+      // Load from database
+      console.log('Attempting to load maps from database...');
+      const response = await fetch('/api/office-map', {
+        method: 'GET',
+        headers: {
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache'
         }
+      });
+      console.log('API response status:', response.status);
+      
+      if (response.status === 404) {
+        console.log('No maps found, but API is working');
+        setMaps([]);
+        setIsLoading(false);
         return;
       }
       
-      // Load from database
-      console.log('Attempting to load maps from database...');
-      const response = await fetch('/api/office-map');
-      console.log('API response status:', response.status);
-      
       if (response.ok) {
         const result = await response.json();
+        console.log('Received maps data:', result.data ? `${result.data.length} maps` : 'No maps');
         
         if (result.data && Array.isArray(result.data)) {
           const mapsList = result.data.map((map: any) => ({
@@ -122,11 +111,28 @@ export default function OfficeMapper() {
         }
       } else {
         console.error('Failed to fetch maps list:', response.statusText);
-        switchToOfflineMode();
+        // Try to get more error details
+        try {
+          const errorData = await response.json();
+          console.error('API error details:', errorData);
+        } catch (e) {
+          console.error('Could not parse error response');
+        }
+        
+        // For client errors, just set loading to false
+        setIsLoading(false);
+        setNotification({
+          message: 'Could not load maps - please try again later',
+          type: 'error'
+        });
       }
     } catch (error) {
       console.error('Error loading maps list:', error);
-      switchToOfflineMode();
+      setIsLoading(false);
+      setNotification({
+        message: 'Failed to connect to the database',
+        type: 'error'
+      });
     }
   };
   
@@ -135,35 +141,6 @@ export default function OfficeMapper() {
     setIsLoading(true);
     
     try {
-      if (isOfflineMode) {
-        // Load from localStorage
-        try {
-          const savedMapStr = localStorage.getItem(`officeMapperData_${mapId}`);
-          if (savedMapStr) {
-            const savedMap = JSON.parse(savedMapStr);
-            setMapImage(savedMap.mapImage);
-            setEmployees(savedMap.employees || []);
-            setRooms(savedMap.rooms || []);
-            setCurrentMapId(mapId);
-            
-            // Set default tab based on whether we have a map
-            if (savedMap.mapImage) {
-              setActiveTab('employees');
-            } else {
-              setActiveTab('upload');
-            }
-          } else {
-            // Map not found in localStorage
-            showNotification('Map not found in local storage', 'error');
-          }
-        } catch (localError) {
-          console.error('Error loading map from localStorage:', localError);
-        }
-        
-        setIsLoading(false);
-        return;
-      }
-      
       // Load from database
       const response = await fetch(`/api/office-map?id=${mapId}`);
       
@@ -204,55 +181,16 @@ export default function OfficeMapper() {
       } else if (response.status === 404) {
         showNotification('Map not found', 'error');
       } else {
-        switchToOfflineMode();
+        // Handle other error cases
+        showNotification('Failed to load map', 'error');
+        console.error('Failed to load map:', response.status, response.statusText);
       }
     } catch (error) {
       console.error('Error loading specific map:', error);
-      switchToOfflineMode();
+      showNotification('Error loading map data', 'error');
     } finally {
       setIsLoading(false);
     }
-  };
-  
-  // Switch to offline mode and try to load from localStorage
-  const switchToOfflineMode = () => {
-    console.warn('Switching to offline mode');
-    setIsOfflineMode(true);
-    
-    // Try to load maps from localStorage
-    try {
-      const savedMapsStr = localStorage.getItem('officeMapperMaps');
-      if (savedMapsStr) {
-        const savedMaps = JSON.parse(savedMapsStr) as MapInfo[];
-        setMaps(savedMaps);
-        
-        // If current map is set, try to load it
-        if (currentMapId) {
-          const savedMapStr = localStorage.getItem(`officeMapperData_${currentMapId}`);
-          if (savedMapStr) {
-            const savedMap = JSON.parse(savedMapStr);
-            setMapImage(savedMap.mapImage);
-            setEmployees(savedMap.employees || []);
-            setRooms(savedMap.rooms || []);
-          }
-        } else if (savedMaps.length > 0) {
-          // If no current map but we have maps, load the first one
-          const firstMapId = savedMaps[0].id;
-          const savedMapStr = localStorage.getItem(`officeMapperData_${firstMapId}`);
-          if (savedMapStr) {
-            const savedMap = JSON.parse(savedMapStr);
-            setMapImage(savedMap.mapImage);
-            setEmployees(savedMap.employees || []);
-            setRooms(savedMap.rooms || []);
-            setCurrentMapId(firstMapId);
-          }
-        }
-      }
-    } catch (localError) {
-      console.error('Error loading from localStorage:', localError);
-    }
-    
-    setIsLoading(false);
   };
   
   // Helper function for notifications
@@ -273,39 +211,6 @@ export default function OfficeMapper() {
     
     try {
       setIsSaving(true);
-      
-      // Always save to localStorage as backup
-      try {
-        // Save map data
-        localStorage.setItem(`officeMapperData_${currentMapId}`, JSON.stringify({
-          mapImage,
-          employees,
-          rooms
-        }));
-        
-        // Update thumbnail in maps list
-        const updatedMaps = maps.map(map => {
-          if (map.id === currentMapId) {
-            return { ...map, thumbnail: mapImage };
-          }
-          return map;
-        });
-        setMaps(updatedMaps);
-        localStorage.setItem('officeMapperMaps', JSON.stringify(updatedMaps));
-      } catch (localError) {
-        console.error('Error saving to localStorage:', localError);
-      }
-      
-      // Skip MongoDB save if in offline mode
-      if (isOfflineMode) {
-        setNotification({
-          message: 'Data saved locally (offline mode)',
-          type: 'success'
-        });
-        setTimeout(() => setNotification(null), 5000);
-        setIsSaving(false);
-        return;
-      }
       
       // Convert employees to database format
       const dbEmployees = employees.map(emp => ({
@@ -344,24 +249,13 @@ export default function OfficeMapper() {
         // Refresh the maps list to update thumbnails
         loadMapsList();
       } else if (response.status === 500) {
-        // Handle database connection errors
-        setIsOfflineMode(true);
-        setNotification({
-          message: 'Database connection failed. Working in offline mode.',
-          type: 'error'
-        });
-        setTimeout(() => setNotification(null), 5000);
+        showNotification('Failed to save office map', 'error');
       } else {
         throw new Error('Failed to save office map');
       }
     } catch (error) {
       console.error('Error saving office map:', error);
-      setIsOfflineMode(true);
-      setNotification({
-        message: 'Failed to save to database. Working in offline mode.',
-        type: 'error'
-      });
-      setTimeout(() => setNotification(null), 5000);
+      showNotification('Failed to save to database', 'error');
     } finally {
       setIsSaving(false);
     }
@@ -483,79 +377,44 @@ export default function OfficeMapper() {
     try {
       setIsLoading(true);
       
-      if (isOfflineMode) {
-        // Create a new map in localStorage
-        const newMapId = `map-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
-        const newMap: MapInfo = {
-          id: newMapId,
+      // Create new map in database
+      const response = await fetch('/api/office-map', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
           name: mapName || 'Untitled Map',
-          thumbnail: '',
-          created: new Date().toISOString()
-        };
-        
-        // Add to maps list
-        const updatedMaps = [...maps, newMap];
-        setMaps(updatedMaps);
-        localStorage.setItem('officeMapperMaps', JSON.stringify(updatedMaps));
-        
-        // Initialize empty map data
-        const newMapData = {
-          mapImage: null,
+          mapImage: '',
           employees: [],
           rooms: []
-        };
-        localStorage.setItem(`officeMapperData_${newMapId}`, JSON.stringify(newMapData));
+        })
+      });
+      
+      if (response.ok) {
+        const result = await response.json();
         
-        // Select the new map
-        setCurrentMapId(newMapId);
-        setMapImage(null);
-        setEmployees([]);
-        setRooms([]);
-        setActiveTab('upload');
-        
-        showNotification('New map created successfully', 'success');
-      } else {
-        // Create new map in database
-        const response = await fetch('/api/office-map', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            name: mapName || 'Untitled Map',
-            mapImage: '',
-            employees: [],
-            rooms: []
-          })
-        });
-        
-        if (response.ok) {
-          const result = await response.json();
+        if (result.data) {
+          // Refresh the maps list
+          await loadMapsList();
           
-          if (result.data) {
-            // Refresh the maps list
-            await loadMapsList();
-            
-            // Select the new map
-            setCurrentMapId(result.data._id);
-            setMapImage(null);
-            setEmployees([]);
-            setRooms([]);
-            setActiveTab('upload');
-            
-            showNotification('New map created successfully', 'success');
-          }
-        } else if (response.status === 500) {
-          switchToOfflineMode();
-          showNotification('Failed to create map in database, working in offline mode', 'error');
-        } else {
-          showNotification('Failed to create new map', 'error');
+          // Select the new map
+          setCurrentMapId(result.data._id);
+          setMapImage(null);
+          setEmployees([]);
+          setRooms([]);
+          setActiveTab('upload');
+          
+          showNotification('New map created successfully', 'success');
         }
+      } else if (response.status === 500) {
+        showNotification('Failed to create map in database', 'error');
+      } else {
+        showNotification('Failed to create new map', 'error');
       }
     } catch (error) {
       console.error('Error creating new map:', error);
-      switchToOfflineMode();
-      showNotification('Error creating new map, switching to offline mode', 'error');
+      showNotification('Error creating new map', 'error');
     } finally {
       setIsLoading(false);
     }
@@ -566,19 +425,22 @@ export default function OfficeMapper() {
     try {
       setIsLoading(true);
       
-      if (isOfflineMode) {
-        // Remove from maps list
-        const updatedMaps = maps.filter(map => map.id !== mapId);
-        setMaps(updatedMaps);
-        localStorage.setItem('officeMapperMaps', JSON.stringify(updatedMaps));
-        
-        // Remove map data
-        localStorage.removeItem(`officeMapperData_${mapId}`);
+      // Delete map from database
+      const response = await fetch('/api/office-map?id=' + mapId, {
+        method: 'DELETE'
+      });
+      
+      if (response.ok) {
+        // Refresh the maps list
+        await loadMapsList();
         
         // If this was the current map, select another one
         if (mapId === currentMapId) {
-          if (updatedMaps.length > 0) {
-            loadSpecificMap(updatedMaps[0].id);
+          if (maps.length > 1) {
+            const nextMap = maps.find(map => map.id !== mapId);
+            if (nextMap) {
+              loadSpecificMap(nextMap.id);
+            }
           } else {
             setCurrentMapId(null);
             setMapImage(null);
@@ -586,48 +448,17 @@ export default function OfficeMapper() {
             setRooms([]);
             setActiveTab('upload');
           }
-
         }
         
         showNotification('Map deleted successfully', 'success');
+      } else if (response.status === 500) {
+        showNotification('Failed to delete map from database', 'error');
       } else {
-        // Delete map from database
-        const response = await fetch('/api/office-map?id=' + mapId, {
-          method: 'DELETE'
-        });
-        
-        if (response.ok) {
-          // Refresh the maps list
-          await loadMapsList();
-          
-          // If this was the current map, select another one
-          if (mapId === currentMapId) {
-            if (maps.length > 1) {
-              const nextMap = maps.find(map => map.id !== mapId);
-              if (nextMap) {
-                loadSpecificMap(nextMap.id);
-              }
-            } else {
-              setCurrentMapId(null);
-              setMapImage(null);
-              setEmployees([]);
-              setRooms([]);
-              setActiveTab('upload');
-            }
-          }
-          
-          showNotification('Map deleted successfully', 'success');
-        } else if (response.status === 500) {
-          switchToOfflineMode();
-          showNotification('Failed to delete map from database, working in offline mode', 'error');
-        } else {
-          showNotification('Failed to delete map', 'error');
-        }
+        showNotification('Failed to delete map', 'error');
       }
     } catch (error) {
       console.error('Error deleting map:', error);
-      switchToOfflineMode();
-      showNotification('Error deleting map, switching to offline mode', 'error');
+      showNotification('Error deleting map', 'error');
     } finally {
       setIsLoading(false);
     }
@@ -636,43 +467,30 @@ export default function OfficeMapper() {
   // Rename a map
   const handleRenameMap = async (mapId: string, newName: string) => {
     try {
-      if (isOfflineMode) {
-        // Update maps list
-        const updatedMaps = maps.map(map => 
-          map.id === mapId ? { ...map, name: newName } : map
-        );
-        setMaps(updatedMaps);
-        localStorage.setItem('officeMapperMaps', JSON.stringify(updatedMaps));
-        
+      // Update map in database
+      const response = await fetch('/api/office-map', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          id: mapId,
+          name: newName
+        })
+      });
+      
+      if (response.ok) {
+        // Refresh maps list to show the new name
+        await loadMapsList();
         showNotification('Map renamed successfully', 'success');
+      } else if (response.status === 500) {
+        showNotification('Failed to rename map in database', 'error');
       } else {
-        // Update map in database
-        const response = await fetch('/api/office-map', {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            id: mapId,
-            name: newName
-          })
-        });
-        
-        if (response.ok) {
-          // Refresh maps list to show the new name
-          await loadMapsList();
-          showNotification('Map renamed successfully', 'success');
-        } else if (response.status === 500) {
-          switchToOfflineMode();
-          showNotification('Failed to rename map in database, working in offline mode', 'error');
-        } else {
-          showNotification('Failed to rename map', 'error');
-        }
+        showNotification('Failed to rename map', 'error');
       }
     } catch (error) {
       console.error('Error renaming map:', error);
-      switchToOfflineMode();
-      showNotification('Error renaming map, switching to offline mode', 'error');
+      showNotification('Error renaming map', 'error');
     }
   };
   
@@ -697,7 +515,6 @@ export default function OfficeMapper() {
             <h1 className="text-3xl font-bold">OfficeMapper</h1>
             <p className="text-gray-600">
               Upload and manage your office seating plans
-              {isOfflineMode && ' (Offline Mode)'}
             </p>
           </div>
           
@@ -720,19 +537,12 @@ export default function OfficeMapper() {
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                     <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd" />
                   </svg>
-                  {isOfflineMode ? 'Save Locally' : 'Save Map'}
+                  Save Map
                 </>
               )}
             </button>
           )}
         </div>
-        
-        {/* Offline Mode Warning */}
-        {isOfflineMode && (
-          <div className="mt-2 p-2 bg-yellow-100 border border-yellow-300 rounded-md text-sm text-yellow-800">
-            Working in offline mode. Data is saved only to your browser's local storage.
-          </div>
-        )}
         
         {/* Notification */}
         {notification && (
