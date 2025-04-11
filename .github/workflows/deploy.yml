@@ -32,18 +32,15 @@ jobs:
       - name: Clean Next.js cache 🧹
         run: npm run clean || true
 
-      - name: Build and Export 🔧
+      - name: Build (includes export with output:'export') 🔧
         env:
           MONGODB_URI: ${{ secrets.MONGODB_URI }}
           NODE_ENV: production
-        run: |
-          npm run build
-          npm run export || true
-          npm run prepare-gh-pages
+        run: npm run build
 
-      - name: Add cache control headers ✓
+      - name: Prepare for GitHub Pages 🔧
         run: |
-          echo "Adding cache control headers..."
+          npm run prepare-gh-pages
           touch out/.nojekyll
           echo "Last updated: $(date)" > out/build-info.txt
 

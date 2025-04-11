@@ -10,8 +10,6 @@ const nextConfig = {
   env: {
     MONGODB_URI: process.env.MONGODB_URI,
   },
-  // Exclude API routes from the static export since they won't work
-  distDir: 'out',
   // This is needed for the mongoose global fix
   webpack: (config) => {
     // This is to fix the global is not defined error with mongoose caching

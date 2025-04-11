@@ -8,9 +8,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "export": "next export",
     "prepare-gh-pages": "node prepare-github-pages.js",
-    "predeploy": "npm run build && npm run export && npm run prepare-gh-pages",
+    "predeploy": "npm run build && npm run prepare-gh-pages",
     "deploy": "gh-pages -d out",
     "clean": "rimraf .next out"
   },
