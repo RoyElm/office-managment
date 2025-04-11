@@ -1,7 +1,4 @@
-// Remove static export settings for real deployment
-export const dynamic = 'force-static';
-export const revalidate = false;
-export const dynamicParams = false;
+// API route for testing MongoDB connection
 
 import { NextResponse } from 'next/server';
 import dbConnect from '../../../lib/mongodb';
