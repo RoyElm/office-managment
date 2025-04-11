@@ -1,4 +1,4 @@
-// Dynamic API routes for MongoDB connection
+// Remove static export settings for real deployment
 export const dynamic = 'force-static';
 export const revalidate = false;
 export const dynamicParams = false;

@@ -1,16 +1,50 @@
-# Office Management App
+# Office Management Application
 
-An interactive office mapping and employee management application built with Next.js.
+A Next.js web application for managing office layouts, employee seating, team assignments, and room management.
 
 ## Features
 
-- Interactive office map with employee locations
-- Multiple map support
-- Team management 
-- Room naming and categorization
-- Employee location highlighting
-- QR code generation for each employee
+- Multiple office maps with management features
+- Employee location tracking with QR code generation
+- Team assignment functionality
+- Room naming and management
+- Search and filtering capabilities
 - Works in both online (MongoDB) and offline (localStorage) modes
+- Printable QR code export for all employees
+
+## Deployment on Vercel
+
+This application is configured for deployment on Vercel:
+
+1. Push your code to GitHub
+2. Import your repository at [vercel.com/import](https://vercel.com/import)
+3. Add your MongoDB URI as an environment variable:
+   - Name: `MONGODB_URI`
+   - Value: Your MongoDB connection string
+
+### Environment Variables
+
+- `MONGODB_URI`: Connection string for your MongoDB database
+
+## Local Development
+
+1. Clone the repository
+2. Install dependencies: `npm install`
+3. Create a `.env.local` file with your MongoDB connection string:
+   ```
+   MONGODB_URI=mongodb+srv://...
+   ```
+4. Run the development server: `npm run dev`
+5. Open [http://localhost:3000](http://localhost:3000) in your browser
+
+## Build & Run
+
+- Build: `npm run build`
+- Start: `npm start`
+
+## License
+
+MIT
 
 ## Tech Stack
 
