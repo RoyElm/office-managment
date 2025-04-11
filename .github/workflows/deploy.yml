@@ -18,12 +18,15 @@ jobs:
     steps:
       - name: Checkout 🛎️
         uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
 
       - name: Setup Node.js 📦
         uses: actions/setup-node@v3
         with:
           node-version: '20'
-          cache: 'npm'
+          # Temporarily disable cache to force clean build
+          # cache: 'npm'
 
       - name: Install dependencies 📥
         run: npm ci
@@ -48,4 +51,5 @@ jobs:
         with:
           folder: out # The folder the action should deploy
           token: ${{ secrets.GITHUB_TOKEN }}
-          branch: gh-pages # The branch the action should deploy to 
+          branch: gh-pages # The branch the action should deploy to
+          clean: true # Automatically remove deleted files from the deploy branch 
