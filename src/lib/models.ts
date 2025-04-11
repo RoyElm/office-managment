@@ -27,7 +27,9 @@ const RoomSchema = new mongoose.Schema({
 
 // Office Map Schema
 const OfficeMapSchema = new mongoose.Schema({
+  name: { type: String, required: true, default: 'Untitled Map' },
   mapImage: { type: String, required: true }, // Base64 encoded image
+  thumbnail: { type: String, required: false }, // Smaller version for previews
   employees: [EmployeeSchema],
   rooms: [RoomSchema]
 }, { 
@@ -69,9 +71,24 @@ export interface IRoom {
 
 export interface IOfficeMap {
   _id?: string;
+  name: string;
   mapImage: string;
+  thumbnail?: string;
   employees: IEmployee[];
   rooms: IRoom[];
   createdAt?: Date;
   updatedAt?: Date;
+}
+
+// Helper function to generate a thumbnail from a base64 image
+export function generateThumbnail(base64Image: string, maxSize: number = 300): string {
+  // If there's no image or it doesn't start with data:image, return empty
+  if (!base64Image || !base64Image.startsWith('data:image')) {
+    return '';
+  }
+
+  // For actual implementation, we would resize the image here
+  // For simplicity, we'll just return the original image
+  // In a real implementation, you'd use canvas to resize the image
+  return base64Image;
 } 

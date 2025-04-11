@@ -1,16 +1,16 @@
 // GitHub Pages deployment preparation script
 const fs = require('fs');
 const path = require('path');
-const rimraf = require('rimraf');
 
-// Clean up API routes from the build output
+// Prepare build for GitHub Pages deployment
 console.log('Preparing build for GitHub Pages deployment...');
 
-// Remove API routes directory if it exists
-const apiRoutesPath = path.join(__dirname, 'out', 'api');
-if (fs.existsSync(apiRoutesPath)) {
-  console.log('Removing API routes from static build...');
-  rimraf.sync(apiRoutesPath);
-}
+// Create .nojekyll file to prevent GitHub from ignoring files that begin with an underscore
+const nojekyllPath = path.join(__dirname, 'out', '.nojekyll');
+fs.writeFileSync(nojekyllPath, '');
+console.log('Created .nojekyll file for GitHub Pages');
+
+// Check if we need to add any special handling for GitHub Pages
+// For example, you could add a custom 404 page or redirects here
 
 console.log('GitHub Pages preparation complete!'); 

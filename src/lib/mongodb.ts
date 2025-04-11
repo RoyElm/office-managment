@@ -4,12 +4,11 @@ import mongoose from 'mongoose';
 const MONGODB_URI = process.env.MONGODB_URI || '';
 
 if (!MONGODB_URI) {
-  console.error('Please define the MONGODB_URI environment variable in .env.local with a valid MongoDB connection string');
-  throw new Error('Please define the MONGODB_URI environment variable');
+  console.warn('MongoDB URI not found. If running in development without MongoDB, the app will use localStorage.');
 }
 
 // Better error handling for authentication issues
-if (MONGODB_URI.includes('<db_password>')) {
+if (MONGODB_URI && MONGODB_URI.includes('<db_password>')) {
   console.error('MongoDB connection error: Please replace <db_password> in your MONGODB_URI with the actual password');
   console.error('For local development without MongoDB, comment out the database saving code in OfficeMapper.tsx');
 }
@@ -25,6 +24,11 @@ let globalMongoose = {
 };
 
 async function dbConnect() {
+  // If no MongoDB URI is provided, throw a specific error that can be caught
+  if (!MONGODB_URI) {
+    throw new Error('MONGODB_URI not configured');
+  }
+
   if (globalMongoose.conn) {
     return globalMongoose.conn;
   }
