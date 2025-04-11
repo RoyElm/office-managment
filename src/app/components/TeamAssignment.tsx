@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import EmployeeQRCode from './EmployeeQRCode';
 
 interface Team {
   id: string;
@@ -12,6 +13,7 @@ interface Employee {
   id: string;
   name: string;
   team?: string;
+  position: { x: number; y: number }; // Add position to the interface
 }
 
 interface TeamAssignmentProps {
@@ -41,6 +43,16 @@ export default function TeamAssignment({
   ]);
   const [newTeamName, setNewTeamName] = useState('');
   const [newTeamColor, setNewTeamColor] = useState(TEAM_COLORS[0]);
+  const [baseUrl, setBaseUrl] = useState('');
+
+  // Get the base URL for QR codes
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      // Handle GitHub Pages path or local development
+      const url = window.location.href.split('?')[0]; // Remove any query parameters
+      setBaseUrl(url);
+    }
+  }, []);
 
   // Extract unique team names from employees to ensure all teams are in the list
   useEffect(() => {
@@ -215,19 +227,21 @@ export default function TeamAssignment({
                   )}
                 </td>
                 <td className="p-2 border">
-                  <select
-                    className="w-full px-2 py-1 border rounded"
-                    value={employee.team || ''}
-                    onChange={(e) => handleAssignTeam(employee.id, e.target.value || null)}
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <option value="">No Team</option>
-                    {teams.map(team => (
-                      <option key={team.id} value={team.name}>
-                        {team.name}
-                      </option>
-                    ))}
-                  </select>
+                  <div className="flex gap-2 items-center" onClick={(e) => e.stopPropagation()}>
+                    <select
+                      className="flex-1 px-2 py-1 border rounded"
+                      value={employee.team || ''}
+                      onChange={(e) => handleAssignTeam(employee.id, e.target.value || null)}
+                    >
+                      <option value="">No Team</option>
+                      {teams.map(team => (
+                        <option key={team.id} value={team.name}>
+                          {team.name}
+                        </option>
+                      ))}
+                    </select>
+                    {baseUrl && <EmployeeQRCode employee={employee} baseUrl={baseUrl} />}
+                  </div>
                 </td>
               </tr>
             ))}
@@ -242,7 +256,8 @@ export default function TeamAssignment({
         </table>
         {onHighlightEmployee && (
           <p className="mt-2 text-sm text-gray-500">
-            Click on an employee row to highlight their location on the map.
+            Click on an employee row to highlight their location on the map. 
+            Use the "Show QR" button to generate a QR code that links directly to an employee's location.
           </p>
         )}
       </div>

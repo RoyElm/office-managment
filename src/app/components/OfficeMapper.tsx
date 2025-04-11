@@ -8,6 +8,7 @@ import TeamAssignment from './TeamAssignment';
 import SearchFilter from './SearchFilter';
 import MapPreviewModal from './MapPreviewModal';
 import { IEmployee, IRoom } from '../../lib/models';
+import { useSearchParams } from 'next/navigation';
 
 interface Employee {
   id: string;
@@ -23,6 +24,7 @@ interface Room {
 }
 
 export default function OfficeMapper() {
+  const searchParams = useSearchParams();
   const [mapImage, setMapImage] = useState<string | null>(null);
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [rooms, setRooms] = useState<Room[]>([]);
@@ -33,6 +35,18 @@ export default function OfficeMapper() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [isOfflineMode, setIsOfflineMode] = useState(false);
+  
+  // Check URL parameters for direct highlighting
+  useEffect(() => {
+    if (searchParams) {
+      const highlightId = searchParams.get('highlight');
+      if (highlightId) {
+        setHighlightedEmployee(highlightId);
+        // Show the full screen preview when directly accessing an employee
+        setShowFullScreenPreview(true);
+      }
+    }
+  }, [searchParams, employees]);
   
   // Load data from database when component mounts
   useEffect(() => {
