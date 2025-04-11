@@ -1,4 +1,4 @@
-{/** Force deployment refresh: ${new Date().toISOString()} **/}
+{/* Force deployment refresh: 2024-07-14T15:00:00.000Z */}
 'use client';
 
 import dynamic from 'next/dynamic';
@@ -8,6 +8,9 @@ const OfficeMapper = dynamic(() => import('./components/OfficeMapper'), { ssr: f
 
 export default function Home() {
   return (
-    <OfficeMapper />
+    <>
+      {/* Version: 1.0.2 - QR Export Feature */}
+      <OfficeMapper />
+    </>
   );
 }
