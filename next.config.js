@@ -1,9 +1,10 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Optimized for Vercel deployment
-  output: 'standalone',
+  // Default output for Vercel
+  // Using 'standalone' might be causing deployment issues
   
   images: {
+    domains: ['localhost'],
     unoptimized: true, // Needed for backward compatibility
   },
   
