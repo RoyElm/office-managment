@@ -405,12 +405,12 @@ export default function OfficeMapper() {
           setRooms([]);
           setActiveTab('upload');
           
-          showNotification('New map created successfully', 'success');
+          showNotification('New map created successfully! Please upload a map image.', 'success');
         }
-      } else if (response.status === 500) {
-        showNotification('Failed to create map in database', 'error');
       } else {
-        showNotification('Failed to create new map', 'error');
+        const errorData = await response.json();
+        console.error('Failed to create map:', errorData);
+        showNotification(`Failed to create new map: ${errorData.error || 'Unknown error'}`, 'error');
       }
     } catch (error) {
       console.error('Error creating new map:', error);

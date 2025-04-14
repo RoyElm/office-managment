@@ -50,17 +50,14 @@ export async function POST(request: NextRequest) {
     const data = await request.json();
     const { name, mapImage, employees, rooms } = data;
 
-    if (!mapImage) {
-      return NextResponse.json({ error: 'Map image is required' }, { status: 400 });
-    }
-
-    // Generate a thumbnail
-    const thumbnail = generateThumbnail(mapImage);
+    // Remove the requirement for mapImage when creating a new map
+    // Generate a thumbnail only if mapImage is provided
+    const thumbnail = mapImage ? generateThumbnail(mapImage) : '';
     
     // Create a new office map
     const officeMap = await OfficeMap.create({
       name: name || 'Untitled Map',
-      mapImage,
+      mapImage: mapImage || '',
       thumbnail,
       employees: employees || [],
       rooms: rooms || []

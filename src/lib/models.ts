@@ -28,7 +28,7 @@ const RoomSchema = new mongoose.Schema({
 // Office Map Schema
 const OfficeMapSchema = new mongoose.Schema({
   name: { type: String, required: true, default: 'Untitled Map' },
-  mapImage: { type: String, required: true }, // Base64 encoded image
+  mapImage: { type: String, required: false, default: '' }, // Base64 encoded image, now optional
   thumbnail: { type: String, required: false }, // Smaller version for previews
   employees: [EmployeeSchema],
   rooms: [RoomSchema]
