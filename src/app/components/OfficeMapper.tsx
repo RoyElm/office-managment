@@ -49,16 +49,25 @@ export default function OfficeMapper() {
   useEffect(() => {
     if (searchParams) {
       const highlightId = searchParams.get('highlight');
-      if (highlightId) {
-        setHighlightedEmployee(highlightId);
-        // Show the full screen preview when directly accessing an employee
-        setShowFullScreenPreview(true);
-      }
-      
-      // Check if a specific map is requested
       const mapId = searchParams.get('map');
+      
+      // First, check if a specific map is requested
       if (mapId && mapId !== currentMapId) {
-        loadSpecificMap(mapId);
+        console.log('Loading specific map from URL:', mapId);
+        // Load the requested map first
+        loadSpecificMap(mapId).then(() => {
+          // After map is loaded, highlight the employee if requested
+          if (highlightId) {
+            console.log('Highlighting employee from URL:', highlightId);
+            setHighlightedEmployee(highlightId);
+            setShowFullScreenPreview(true);
+          }
+        });
+      } else if (highlightId) {
+        // If we already have the correct map or no map is specified
+        console.log('Highlighting employee from URL:', highlightId);
+        setHighlightedEmployee(highlightId);
+        setShowFullScreenPreview(true);
       }
     }
   }, [searchParams]);
@@ -137,7 +146,7 @@ export default function OfficeMapper() {
   };
   
   // Load specific map data
-  const loadSpecificMap = async (mapId: string) => {
+  const loadSpecificMap = async (mapId: string): Promise<void> => {
     setIsLoading(true);
     
     try {
@@ -744,9 +753,9 @@ export default function OfficeMapper() {
                 {employees.map((employee) => (
                   <div
                     key={employee.id}
-                    className={`absolute w-6 h-6 transform -translate-x-1/2 -translate-y-1/2 rounded-full flex items-center justify-center text-xs group ${
+                    className={`absolute w-4 h-4 transform -translate-x-1/2 -translate-y-1/2 rounded-full flex items-center justify-center text-xs group ${
                       highlightedEmployee === employee.id
-                        ? 'ring-4 ring-red-500 animate-pulse bg-red-200 z-50 w-8 h-8 font-bold'
+                        ? 'ring-4 ring-red-500 animate-pulse bg-red-200 z-50 w-6 h-6 font-bold'
                         : employee.team
                         ? getTeamColor(employee.team)
                         : 'bg-gray-400'

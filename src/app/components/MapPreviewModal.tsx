@@ -130,10 +130,10 @@ export default function MapPreviewModal({
                   ref={isHighlighted ? highlightedRef : null}
                   className={`absolute transform -translate-x-1/2 -translate-y-1/2 rounded-full flex items-center justify-center text-sm group ${
                     isHighlighted
-                      ? 'ring-4 ring-red-500 animate-pulse bg-red-200 z-50 w-14 h-14 font-bold'
+                      ? 'ring-4 ring-red-500 animate-pulse bg-red-200 z-50 w-12 h-12 font-bold'
                       : employee.team
-                      ? `${getTeamColor(employee.team)} w-10 h-10`
-                      : 'bg-gray-400 w-10 h-10'
+                      ? `${getTeamColor(employee.team)} w-8 h-8`
+                      : 'bg-gray-400 w-8 h-8'
                   }`}
                   style={{
                     left: `${employee.position.x}%`,

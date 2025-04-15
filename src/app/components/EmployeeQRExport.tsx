@@ -21,8 +21,20 @@ export default function EmployeeQRExport({ employees, baseUrl, onClose }: Employ
   const createEmployeeURL = (employeeId: string) => {
     // Remove trailing slash if present
     const cleanBaseUrl = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
-    // Create URL with employee ID as a query parameter
-    return `${cleanBaseUrl}?highlight=${employeeId}`;
+    
+    // Get the current map ID from URL
+    const url = new URL(window.location.href);
+    const currentMapId = url.searchParams.get('map');
+    
+    // Create URL with employee ID and map ID as query parameters
+    let employeeUrl = `${cleanBaseUrl}?highlight=${employeeId}`;
+    
+    // Add map ID if available
+    if (currentMapId) {
+      employeeUrl += `&map=${currentMapId}`;
+    }
+    
+    return employeeUrl;
   };
 
   // Print the page when it's loaded
