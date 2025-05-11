@@ -21,6 +21,7 @@ interface MapPreviewModalProps {
   rooms: Room[];
   highlightedEmployee: string | null;
   onClose: () => void;
+  onClearHighlight?: () => void;
 }
 
 export default function MapPreviewModal({
@@ -28,7 +29,8 @@ export default function MapPreviewModal({
   employees,
   rooms,
   highlightedEmployee,
-  onClose
+  onClose,
+  onClearHighlight
 }: MapPreviewModalProps) {
   const modalRef = useRef<HTMLDivElement>(null);
   const highlightedRef = useRef<HTMLDivElement>(null);
@@ -103,14 +105,24 @@ export default function MapPreviewModal({
               </span>
             )}
           </h2>
-          <button 
-            onClick={onClose}
-            className="text-gray-500 hover:text-gray-700"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
+          <div className="flex gap-2 items-center">
+            {highlightedEmployee && onClearHighlight && (
+              <button
+                onClick={onClearHighlight}
+                className="px-3 py-1 bg-red-100 text-red-700 rounded hover:bg-red-200 text-xs"
+              >
+                Close Highlight
+              </button>
+            )}
+            <button 
+              onClick={onClose}
+              className="text-gray-500 hover:text-gray-700"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
         </div>
         
         <div className="p-4 flex-1 overflow-auto" ref={mapContainerRef}>

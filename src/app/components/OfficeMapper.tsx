@@ -365,16 +365,10 @@ export default function OfficeMapper() {
     setTimeout(() => saveToDatabase(), 500);
   };
 
-  // Clear highlight after 5 seconds (increased from 3 to give more time to see)
-  useEffect(() => {
-    if (highlightedEmployee) {
-      const timer = setTimeout(() => {
-        setHighlightedEmployee(null);
-      }, 5000);
-      
-      return () => clearTimeout(timer);
-    }
-  }, [highlightedEmployee]);
+  // Manual clear highlight function
+  const handleClearHighlight = () => {
+    setHighlightedEmployee(null);
+  };
 
   // Create a new map
   const handleAddNewMap = async () => {
@@ -810,6 +804,7 @@ export default function OfficeMapper() {
           rooms={rooms}
           highlightedEmployee={highlightedEmployee}
           onClose={() => setShowFullScreenPreview(false)}
+          onClearHighlight={handleClearHighlight}
         />
       )}
     </div>
