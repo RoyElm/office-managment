@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import MapUploader from './MapUploader';
 import EmployeePlacement from './EmployeePlacement';
 import RoomRenaming from './RoomRenaming';
@@ -45,35 +45,19 @@ export default function OfficeMapper() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   
-  // Track the last loaded map for QR logic to prevent infinite loops
-  const lastLoadedMapForQR = useRef<string | null>(null);
-  
-  // Robust QR logic: always load map if needed, then highlight
   useEffect(() => {
     if (!searchParams) return;
     const highlightId = searchParams.get('highlight');
     const mapId = searchParams.get('map');
 
-    // If map param is present and not loaded, load it
+    // If map param is present and not loaded, load it and do nothing else
     if (mapId && mapId !== currentMapId) {
       loadSpecificMap(mapId);
-    }
-
-    // If map param matches current map, check for highlight
-    if (mapId && mapId === currentMapId && highlightId) {
-      const found = employees.find(emp => emp.id === highlightId);
-      if (found) {
-        setHighlightedEmployee(highlightId);
-        setShowFullScreenPreview(true);
-      } else {
-        setHighlightedEmployee(null);
-        setShowFullScreenPreview(false);
-      }
       return;
     }
 
-    // If only highlight param is present (no map param), use current map
-    if (!mapId && highlightId) {
+    // If highlight param is present and current map is loaded, show preview if employee exists
+    if (highlightId) {
       const found = employees.find(emp => emp.id === highlightId);
       if (found) {
         setHighlightedEmployee(highlightId);
