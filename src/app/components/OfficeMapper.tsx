@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import MapUploader from './MapUploader';
 import EmployeePlacement from './EmployeePlacement';
 import RoomRenaming from './RoomRenaming';
@@ -45,20 +45,21 @@ export default function OfficeMapper() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   
+  // Track the last loaded map for QR logic to prevent infinite loops
+  const lastLoadedMapForQR = useRef<string | null>(null);
+  
   // Check URL parameters for direct highlighting
   useEffect(() => {
     if (searchParams) {
       const highlightId = searchParams.get('highlight');
       const mapId = searchParams.get('map');
       
-      // First, check if a specific map is requested
-      if (mapId && mapId !== currentMapId) {
-        console.log('Loading specific map from URL:', mapId);
-        // Load the requested map first
+      // If a map is specified in the URL and it's not the last loaded for QR, load it
+      if (mapId && mapId !== lastLoadedMapForQR.current) {
+        lastLoadedMapForQR.current = mapId;
         loadSpecificMap(mapId).then(() => {
-          // After map is loaded, highlight the employee if requested
+          // After map is loaded, check for highlight
           if (highlightId) {
-            // Check if the employee exists in the new map
             const found = employees.find(emp => emp.id === highlightId);
             if (found) {
               setHighlightedEmployee(highlightId);
@@ -73,7 +74,7 @@ export default function OfficeMapper() {
           }
         });
       } else if (highlightId) {
-        // If we already have the correct map or no map is specified
+        // If map is already loaded or not specified, just highlight
         const found = employees.find(emp => emp.id === highlightId);
         if (found) {
           setHighlightedEmployee(highlightId);
@@ -87,7 +88,7 @@ export default function OfficeMapper() {
         setShowFullScreenPreview(false);
       }
     }
-  }, [searchParams, employees, currentMapId]);
+  }, [searchParams, employees]);
   
   // Load the list of maps
   const loadMapsList = async () => {
