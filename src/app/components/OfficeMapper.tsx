@@ -47,57 +47,48 @@ export default function OfficeMapper() {
   
   // Track the last loaded map for QR logic to prevent infinite loops
   const lastLoadedMapForQR = useRef<string | null>(null);
-  // Use state for pending highlight
-  const [pendingHighlight, setPendingHighlight] = useState<{ mapId: string | null, highlightId: string | null } | null>(null);
   
-  // Check URL parameters for direct highlighting
+  // Robust QR logic: always load map if needed, then highlight
   useEffect(() => {
-    if (searchParams) {
-      const highlightId = searchParams.get('highlight');
-      const mapId = searchParams.get('map');
-      
-      if (mapId && mapId !== lastLoadedMapForQR.current) {
-        setPendingHighlight({ mapId, highlightId });
-        loadSpecificMap(mapId).then(() => {
-          // Set lastLoadedMapForQR only after map is loaded
-          lastLoadedMapForQR.current = mapId;
-        });
-      } else if (highlightId) {
-        setPendingHighlight({ mapId: currentMapId, highlightId });
-        // If map is already loaded or not specified, just highlight
-        const found = employees.find(emp => emp.id === highlightId);
-        if (found) {
-          setHighlightedEmployee(highlightId);
-          setShowFullScreenPreview(true);
-        } else {
-          setHighlightedEmployee(null);
-          setShowFullScreenPreview(false);
-        }
+    if (!searchParams) return;
+    const highlightId = searchParams.get('highlight');
+    const mapId = searchParams.get('map');
+
+    // If map param is present and not loaded, load it
+    if (mapId && mapId !== currentMapId) {
+      loadSpecificMap(mapId);
+    }
+
+    // If map param matches current map, check for highlight
+    if (mapId && mapId === currentMapId && highlightId) {
+      const found = employees.find(emp => emp.id === highlightId);
+      if (found) {
+        setHighlightedEmployee(highlightId);
+        setShowFullScreenPreview(true);
       } else {
-        setPendingHighlight(null);
         setHighlightedEmployee(null);
         setShowFullScreenPreview(false);
       }
+      return;
     }
-  }, [searchParams]);
-  
-  // When employees or currentMapId update, check for pending highlight
-  useEffect(() => {
-    if (pendingHighlight) {
-      const { mapId, highlightId } = pendingHighlight;
-      if (mapId === currentMapId && highlightId) {
-        const found = employees.find(emp => emp.id === highlightId);
-        if (found) {
-          setHighlightedEmployee(highlightId);
-          setShowFullScreenPreview(true);
-        } else {
-          setHighlightedEmployee(null);
-          setShowFullScreenPreview(false);
-        }
-        setPendingHighlight(null);
+
+    // If only highlight param is present (no map param), use current map
+    if (!mapId && highlightId) {
+      const found = employees.find(emp => emp.id === highlightId);
+      if (found) {
+        setHighlightedEmployee(highlightId);
+        setShowFullScreenPreview(true);
+      } else {
+        setHighlightedEmployee(null);
+        setShowFullScreenPreview(false);
       }
+      return;
     }
-  }, [employees, currentMapId, pendingHighlight]);
+
+    // Otherwise, clear highlight and preview
+    setHighlightedEmployee(null);
+    setShowFullScreenPreview(false);
+  }, [searchParams, currentMapId, employees]);
   
   // Load the list of maps
   const loadMapsList = async () => {
