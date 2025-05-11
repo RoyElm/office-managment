@@ -90,6 +90,11 @@ export default function MapPreviewModal({
     ? employees.find(emp => emp.id === highlightedEmployee) 
     : null;
 
+  // Determine which employees to show
+  const employeesToShow = highlightedEmployee
+    ? employees.filter(emp => emp.id === highlightedEmployee)
+    : employees;
+
   return (
     <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
       <div 
@@ -133,8 +138,8 @@ export default function MapPreviewModal({
               className="w-full h-auto"
             />
             
-            {/* Display all employees */}
-            {employees.map((employee) => {
+            {/* Display only the highlighted employee if set, otherwise all */}
+            {employeesToShow.map((employee) => {
               const isHighlighted = highlightedEmployee === employee.id;
               return (
                 <div
