@@ -47,8 +47,8 @@ export default function OfficeMapper() {
   
   // Track the last loaded map for QR logic to prevent infinite loops
   const lastLoadedMapForQR = useRef<string | null>(null);
-  // Track pending highlight and map from QR
-  const pendingHighlight = useRef<{ mapId: string | null, highlightId: string | null } | null>(null);
+  // Use state for pending highlight
+  const [pendingHighlight, setPendingHighlight] = useState<{ mapId: string | null, highlightId: string | null } | null>(null);
   
   // Check URL parameters for direct highlighting
   useEffect(() => {
@@ -57,11 +57,13 @@ export default function OfficeMapper() {
       const mapId = searchParams.get('map');
       
       if (mapId && mapId !== lastLoadedMapForQR.current) {
-        lastLoadedMapForQR.current = mapId;
-        pendingHighlight.current = { mapId, highlightId };
-        loadSpecificMap(mapId);
+        setPendingHighlight({ mapId, highlightId });
+        loadSpecificMap(mapId).then(() => {
+          // Set lastLoadedMapForQR only after map is loaded
+          lastLoadedMapForQR.current = mapId;
+        });
       } else if (highlightId) {
-        pendingHighlight.current = { mapId: currentMapId, highlightId };
+        setPendingHighlight({ mapId: currentMapId, highlightId });
         // If map is already loaded or not specified, just highlight
         const found = employees.find(emp => emp.id === highlightId);
         if (found) {
@@ -72,17 +74,17 @@ export default function OfficeMapper() {
           setShowFullScreenPreview(false);
         }
       } else {
-        pendingHighlight.current = null;
+        setPendingHighlight(null);
         setHighlightedEmployee(null);
         setShowFullScreenPreview(false);
       }
     }
   }, [searchParams]);
   
-  // When employees update, check for pending highlight
+  // When employees or currentMapId update, check for pending highlight
   useEffect(() => {
-    if (pendingHighlight.current) {
-      const { mapId, highlightId } = pendingHighlight.current;
+    if (pendingHighlight) {
+      const { mapId, highlightId } = pendingHighlight;
       if (mapId === currentMapId && highlightId) {
         const found = employees.find(emp => emp.id === highlightId);
         if (found) {
@@ -92,10 +94,10 @@ export default function OfficeMapper() {
           setHighlightedEmployee(null);
           setShowFullScreenPreview(false);
         }
-        pendingHighlight.current = null;
+        setPendingHighlight(null);
       }
     }
-  }, [employees, currentMapId]);
+  }, [employees, currentMapId, pendingHighlight]);
   
   // Load the list of maps
   const loadMapsList = async () => {
