@@ -58,19 +58,36 @@ export default function OfficeMapper() {
         loadSpecificMap(mapId).then(() => {
           // After map is loaded, highlight the employee if requested
           if (highlightId) {
-            console.log('Highlighting employee from URL:', highlightId);
-            setHighlightedEmployee(highlightId);
-            setShowFullScreenPreview(true);
+            // Check if the employee exists in the new map
+            const found = employees.find(emp => emp.id === highlightId);
+            if (found) {
+              setHighlightedEmployee(highlightId);
+              setShowFullScreenPreview(true);
+            } else {
+              setHighlightedEmployee(null);
+              setShowFullScreenPreview(false);
+            }
+          } else {
+            setHighlightedEmployee(null);
+            setShowFullScreenPreview(false);
           }
         });
       } else if (highlightId) {
         // If we already have the correct map or no map is specified
-        console.log('Highlighting employee from URL:', highlightId);
-        setHighlightedEmployee(highlightId);
-        setShowFullScreenPreview(true);
+        const found = employees.find(emp => emp.id === highlightId);
+        if (found) {
+          setHighlightedEmployee(highlightId);
+          setShowFullScreenPreview(true);
+        } else {
+          setHighlightedEmployee(null);
+          setShowFullScreenPreview(false);
+        }
+      } else {
+        setHighlightedEmployee(null);
+        setShowFullScreenPreview(false);
       }
     }
-  }, [searchParams]);
+  }, [searchParams, employees, currentMapId]);
   
   // Load the list of maps
   const loadMapsList = async () => {
